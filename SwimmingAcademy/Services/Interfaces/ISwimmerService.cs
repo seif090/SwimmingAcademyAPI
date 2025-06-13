@@ -11,7 +11,7 @@ namespace SwimmingAcademy.Services.Interfaces
         Task DropSwimmerAsync(long swimmerId);
         Task<SwimmerInfoTabDto?> GetSwimmerInfoTabAsync(long swimmerId);
         Task<List<SwimmerLogTabDto>> GetSwimmerLogTabAsync(long swimmerId);
-        Task<object?> GetSwimmerTechnicalTabAsync(long swimmerId);
+        Task<TechnicalTabResultDto?> GetTechnicalTabAsync(long swimmerId);
         Task<List<ActionNameDto>> SearchActionsAsync(int userId, long swimmerId, short userSite);
         Task<List<ShowSwimmerDto>> ShowSwimmersAsync(long? swimmerId, string? fullName, string? year, short? level);
         Task UpdateSwimmerAsync(UpdateSwimmerDto dto);

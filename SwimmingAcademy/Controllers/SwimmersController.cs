@@ -94,5 +94,14 @@ namespace SwimmingAcademy.Controllers
             var result = await _swimmerService.ViewPossibleSchoolAsync(swimmerId, type);
             return Ok(result);
         }
+        [HttpGet("SwimmerTechnicalTab/{swimmerId}")]
+        public async Task<ActionResult<TechnicalTabResultDto>> GetSwimmerTechnicalTab(long swimmerId)
+        {
+            var result = await _swimmerService.GetTechnicalTabAsync(swimmerId);
+            if (result == null)
+                return NotFound("Swimmer not found or no technical data available.");
+
+            return Ok(result);
+        }
     }
 }

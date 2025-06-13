@@ -1,10 +1,13 @@
 ﻿using AutoMapper;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SwimmingAcademy.Data;
 using SwimmingAcademy.DTOs;
+using SwimmingAcademy.Models;
 using SwimmingAcademy.Repositories.Interfaces;
 using SwimmingAcademy.Services.Interfaces;
-using SwimmingAcademy.Data;
-using SwimmingAcademy.Models;
-using Microsoft.EntityFrameworkCore;
+using System.Data;
 
 namespace SwimmingAcademy.Services
 {
@@ -13,12 +16,14 @@ namespace SwimmingAcademy.Services
         private readonly ISwimmerRepository _repository;
         private readonly IMapper _mapper;
         private readonly SwimmingAcademyContext _context;
+        private readonly IConfiguration _configuration;
 
-        public SwimmerService(ISwimmerRepository repository, IMapper mapper, SwimmingAcademyContext context)
+        public SwimmerService(ISwimmerRepository repository, IMapper mapper, SwimmingAcademyContext context, IConfiguration configuration)
         {
             _repository = repository;
             _mapper = mapper;
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<IEnumerable<SwimmerDto>> GetAllSwimmersAsync()
@@ -202,66 +207,59 @@ namespace SwimmingAcademy.Services
 
             return result;
         }
-        public async Task<object?> GetSwimmerTechnicalTabAsync(long swimmerId)
+        public async Task<TechnicalTabResultDto?> GetTechnicalTabAsync(long swimmerId)
         {
-            var tech = await _context.Technicals
-                .FirstOrDefaultAsync(t => t.SwimmerID == swimmerId);
+            var result = new TechnicalTabResultDto();
 
-            if (tech == null)
-                return null;
-
-            // School Technical Tab  
-            if (tech.ISSchool.HasValue && tech.ISSchool.Value)
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Swimmers].[TechnicalTap]", conn)
             {
-                var result = await (from st in _context.Technicals
-                                    join sd in _context.Details1 on st.SwimmerID equals sd.SwimmerID
-                                    join si in _context.Infos1 on sd.SchoolID equals si.SwimmerID
-                                    join c in _context.Coaches on sd.CoachID equals c.CoachID
-                                    join ac in _context.AppCodes on st.CurrentLevel equals ac.sub_id
-                                    where st.SwimmerID == swimmerId
-                                    select new SwimmerTechnicalSchoolTabDto
-                                    {
-                                        CoachName = c.FullName,
-                                        FirstDay = st.FirstSP.ToString(),
-                                        SecondDay = st.SecondSP.ToString(),
-                                        StartTime = TimeSpan.FromHours(), // Fix: Replace 'si.StartTime' with 'sd.StartTime'
-                                        EndTime = TimeSpan.FromHours((double)sd.EndTime), // Fix: Replace 'si.EndTime' with 'sd.EndTime'
-                                        SwimmerLevel = ac.description,
-                                        Attendence = !string.IsNullOrEmpty(sd.Attendence.ToString()) ? sd.Attendence.ToString() : "N/A"
-                                    }).FirstOrDefaultAsync();
+                CommandType = CommandType.StoredProcedure
+            };
 
-                return result;
+            cmd.Parameters.AddWithValue("@swimmerID", swimmerId);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (reader.HasRows)
+            {
+                await reader.ReadAsync();
+
+                // Detect type based on available fields
+                if (reader.FieldCount == 7)
+                {
+                    result.IsSchool = true;
+                    result.SchoolData = new SwimmerTechnicalSchoolTabDto
+                    {
+                        CoachName = reader["CoachName"].ToString(),
+                        FirstDay = reader["FirstDay"].ToString(),
+                        SecondDay = reader["SecondDay"].ToString(),
+                        StartTime = (TimeSpan)reader["StartTime"],
+                        EndTime = (TimeSpan)reader["EndTime"],
+                        SwimmerLevel = reader["swimmerLevel"].ToString(),
+                        Attendence = reader["Attendence"].ToString()
+                    };
+                }
+                else if (reader.FieldCount == 9)
+                {
+                    result.IsPreTeam = true;
+                    result.PreTeamData = new SwimmerTechnicalPreTeamTabDto
+                    {
+                        CoachName = reader["CoachName"].ToString(),
+                        FirstDay = reader["FirstDay"].ToString(),
+                        SecondDay = reader["SecondDay"].ToString(),
+                        ThirdDay = reader["ThirdDay"].ToString(),
+                        StartTime = (TimeSpan)reader["StartTime"],
+                        EndTime = (TimeSpan)reader["EndTime"],
+                        SwimmerLevel = reader["swimmerLevel"].ToString(),
+                        Attendence = reader["Attendence"].ToString(),
+                        LastStar = reader["LastStar"].ToString()
+                    };
+                }
             }
 
-            // PreTeam Technical Tab  
-            else if (tech.ISPreTeam.HasValue && tech.ISPreTeam.Value)
-            {
-                var result = await (from st in _context.Technicals
-                                    join pd in _context.Details on st.SwimmerID equals pd.SwimmerID
-                                    join pi in _context.Infos1 on pd.PTeamID equals pi.SwimmerID
-                                    join c in _context.Coaches on pd.CoachID equals c.CoachID
-                                    join ac in _context.AppCodes on st.CurrentLevel equals ac.sub_id
-                                    join acc in _context.AppCodes on pd.LastStar equals acc.sub_id into accJoin
-                                    from acc in accJoin.DefaultIfEmpty()
-                                    where st.SwimmerID == swimmerId
-                                    select new SwimmerTechnicalPreTeamTabDto
-                                    {
-                                        CoachName = c.FullName,
-                                        FirstDay = st.FirstSP.ToString(),
-                                        SecondDay = st.SecondSP.ToString(),
-                                        ThirdDay = pi.ThirdDay,
-                                        StartTime = TimeSpan.FromHours((double)pd.StartTime), // Fix: Replace 'pi.StartTime' with 'pd.StartTime'
-                                        EndTime = TimeSpan.FromHours((double)pd.EndTime), // Fix: Replace 'pi.EndTime' with 'pd.EndTime'
-                                        SwimmerLevel = ac.description,
-                                        Attendence = !string.IsNullOrEmpty(pd.Attendence) ? pd.Attendence : "N/A",
-                                        LastStar = acc != null ? acc.description : null
-                                    }).FirstOrDefaultAsync();
-
-                return result;
-            }
-
-            // If neither, return null  
-            return null;
+            return result;
         }
         public async Task<List<ActionNameDto>> SearchActionsAsync(int userId, long swimmerId, short userSite)
         {
