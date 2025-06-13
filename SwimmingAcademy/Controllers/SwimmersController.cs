@@ -86,5 +86,13 @@ namespace SwimmingAcademy.Controllers
             await _swimmerService.UpdateSwimmerLevelAsync(dto);
             return Ok();
         }
+        [HttpGet("view-possible-school")]
+        public async Task<ActionResult<ViewPossibleSchoolResultDto>> ViewPossibleSchool(
+    [FromQuery] long swimmerId,
+    [FromQuery] short type)
+        {
+            var result = await _swimmerService.ViewPossibleSchoolAsync(swimmerId, type);
+            return Ok(result);
+        }
     }
 }
