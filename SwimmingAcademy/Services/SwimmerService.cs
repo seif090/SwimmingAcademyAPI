@@ -222,12 +222,12 @@ namespace SwimmingAcademy.Services
                                     select new SwimmerTechnicalSchoolTabDto
                                     {
                                         CoachName = c.FullName,
-                                        FirstDay = si.FirstDay,
-                                        SecondDay = si.SecondDay,
-                                        StartTime = TimeSpan.FromHours((double)sd.StartTime), // Fix: Replace 'si.StartTime' with 'sd.StartTime'
+                                        FirstDay = st.FirstSP.ToString(),
+                                        SecondDay = st.SecondSP.ToString(),
+                                        StartTime = TimeSpan.FromHours(), // Fix: Replace 'si.StartTime' with 'sd.StartTime'
                                         EndTime = TimeSpan.FromHours((double)sd.EndTime), // Fix: Replace 'si.EndTime' with 'sd.EndTime'
                                         SwimmerLevel = ac.description,
-                                        Attendence = !string.IsNullOrEmpty(sd.Attendence) ? sd.Attendence : "N/A"
+                                        Attendence = !string.IsNullOrEmpty(sd.Attendence.ToString()) ? sd.Attendence.ToString() : "N/A"
                                     }).FirstOrDefaultAsync();
 
                 return result;
@@ -247,8 +247,8 @@ namespace SwimmingAcademy.Services
                                     select new SwimmerTechnicalPreTeamTabDto
                                     {
                                         CoachName = c.FullName,
-                                        FirstDay = pi.FirstDay,
-                                        SecondDay = pi.SecondDay,
+                                        FirstDay = st.FirstSP.ToString(),
+                                        SecondDay = st.SecondSP.ToString(),
                                         ThirdDay = pi.ThirdDay,
                                         StartTime = TimeSpan.FromHours((double)pd.StartTime), // Fix: Replace 'pi.StartTime' with 'pd.StartTime'
                                         EndTime = TimeSpan.FromHours((double)pd.EndTime), // Fix: Replace 'pi.EndTime' with 'pd.EndTime'
