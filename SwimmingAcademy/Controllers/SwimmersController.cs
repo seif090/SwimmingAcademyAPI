@@ -51,5 +51,40 @@ namespace SwimmingAcademy.Controllers
             await _swimmerService.DropSwimmerAsync(swimmerId);
             return Ok();
         }
+        [HttpGet("info-tab/{swimmerId:long}")]
+        public async Task<ActionResult<SwimmerInfoTabDto>> GetSwimmerInfoTab(long swimmerId)
+        {
+            var info = await _swimmerService.GetSwimmerInfoTabAsync(swimmerId);
+            if (info is null)
+                return NotFound();
+            return Ok(info);
+        }
+        [HttpGet("log-tab/{swimmerId:long}")]
+        public async Task<ActionResult<List<SwimmerLogTabDto>>> GetSwimmerLogTab(long swimmerId)
+        {
+            var logs = await _swimmerService.GetSwimmerLogTabAsync(swimmerId);
+            return Ok(logs);
+        }
+        [HttpGet("actions")]
+        public async Task<ActionResult<List<ActionNameDto>>> SearchActions(
+    [FromQuery] int userId,
+    [FromQuery] long swimmerId,
+    [FromQuery] short userSite)
+        {
+            var actions = await _swimmerService.SearchActionsAsync(userId, swimmerId, userSite);
+            return Ok(actions);
+        }
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdateSwimmer([FromBody] UpdateSwimmerDto dto)
+        {
+            await _swimmerService.UpdateSwimmerAsync(dto);
+            return Ok();
+        }
+        [HttpPut("update-level")]
+        public async Task<IActionResult> UpdateSwimmerLevel([FromBody] UpdateSwimmerLevelDto dto)
+        {
+            await _swimmerService.UpdateSwimmerLevelAsync(dto);
+            return Ok();
+        }
     }
 }
