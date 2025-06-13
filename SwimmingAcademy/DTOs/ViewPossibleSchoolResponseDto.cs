@@ -1,8 +1,8 @@
 ﻿namespace SwimmingAcademy.DTOs
 {
-    public class ViewPossibleSchoolResultDto
+    public class ViewPossibleSchoolResponseDto
     {
-        public List<PossibleSchoolDto> Schools { get; set; } = new();
+        public List<SchoolOptionsDto> Schools { get; set; } = new();
         public List<InvoiceItemDto> Invoices { get; set; } = new();
     }
 }

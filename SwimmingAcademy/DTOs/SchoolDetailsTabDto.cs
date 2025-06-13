@@ -2,13 +2,13 @@
 {
     public class SchoolDetailsTabDto
     {
-        public string FullName { get; set; }
-        public string FirstDay { get; set; }
-        public string SecondDay { get; set; }
+        public string CoachName { get; set; } = string.Empty;
+        public string FirstDay { get; set; } = string.Empty;
+        public string SecondDay { get; set; } = string.Empty;
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public int Capacity { get; set; }
         public int NumberOfSwimmers { get; set; }
-        public bool ISEnded { get; set; }
+        public bool IsEnded { get; set; }
     }
 }

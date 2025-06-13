@@ -1,73 +1,53 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SwimmingAcademy.Data;
+using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Models;
 using SwimmingAcademy.Services.Interfaces;
+using System.Data;
 
 namespace SwimmingAcademy.Services
 {
     public class CoachService : ICoachService
     {
         private readonly SwimmingAcademyContext _context;
+        private readonly IConfiguration _configuration;
 
-        public CoachService(SwimmingAcademyContext context)
+        public CoachService(SwimmingAcademyContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
-        public async Task<IEnumerable<string>> GetFreeCoachesAsync(short type, TimeSpan startTime, string firstDay, short site)
+        public async Task<List<FreeCoachDto>> GetFreeCoachesAsync(FreeCoachRequestDto request)
         {
-            IQueryable<Coach> coachesQuery = _context.Coaches
-                .Where(c => c.CoachType == type && c.site == site);
+            var freeCoaches = new List<FreeCoachDto>();
 
-            // For type 8, join with SchoolsInfo; for type 9, join with PreTeamInfo
-            if (type == 8)
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[dbo].[FreeCoaches]", conn)
             {
-                var query = from c in coachesQuery
-                            join i in _context.Infos
-                                on c.CoachID equals i.CoachID into infoJoin
-                            from i in infoJoin.DefaultIfEmpty()
-                            select new
-                            {
-                                c.FullName,
-                                c.CoachID,
-                                StartTime = i != null ? (TimeSpan?)TimeSpan.FromHours((double)i.StartTime) : null,
-                                Day = firstDay
-                            };
+                CommandType = CommandType.StoredProcedure
+            };
 
-                var freeCoaches = await query
-                    .Where(x => !(x.StartTime == startTime && x.Day == firstDay))
-                    .Select(x => x.FullName)
-                    .Distinct()
-                    .ToListAsync();
+            cmd.Parameters.AddWithValue("@Type", request.Type);
+            cmd.Parameters.AddWithValue("@startTime", request.StartTime);
+            cmd.Parameters.AddWithValue("@FirstDay", request.FirstDay);
+            cmd.Parameters.AddWithValue("@site", request.Site);
 
-                return freeCoaches;
-            }
-            else if (type == 9)
+            await conn.OpenAsync();
+
+            using var reader = await cmd.ExecuteReaderAsync();
+            while (await reader.ReadAsync())
             {
-                var query = from c in coachesQuery
-                            join i in _context.Infos
-                                on c.CoachID equals i.CoachID into infoJoin
-                            from i in infoJoin.DefaultIfEmpty()
-                            select new
-                            {
-                                c.FullName,
-                                c.CoachID,
-                                StartTime = i != null ? (TimeSpan?)TimeSpan.FromHours((double)i.StartTime) : null,
-                                Day = firstDay
-                            };
-
-                var freeCoaches = await query
-                    .Where(x => !(x.StartTime == startTime && x.Day == firstDay))
-                    .Select(x => x.FullName)
-                    .Distinct()
-                    .ToListAsync();
-
-                return freeCoaches;
+                var coach = new FreeCoachDto
+                {
+                    Name = reader["Name"].ToString() ?? ""
+                };
+                freeCoaches.Add(coach);
             }
-            else
-            {
-                return Enumerable.Empty<string>();
-            }
+
+            return freeCoaches;
         }
     }
 }

@@ -1,225 +1,217 @@
-﻿using SwimmingAcademy.Services.Interfaces;
-using SwimmingAcademy.Data;
-using SwimmingAcademy.Models;
-using SwimmingAcademy.DTOs;
+﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using SwimmingAcademy.Data;
+using SwimmingAcademy.DTOs;
+using SwimmingAcademy.Models;
+using SwimmingAcademy.Services.Interfaces;
+using System.Data;
 
 namespace SwimmingAcademy.Services
 {
     public class SchoolService : ISchoolService
     {
         private readonly SwimmingAcademyContext _context;
+        private readonly IConfiguration _configuration;
 
-        public SchoolService(SwimmingAcademyContext context)
+        public SchoolService(SwimmingAcademyContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
         }
 
         public async Task<long> CreateSchoolAsync(CreateSchoolDto dto)
         {
-            var now = DateTime.Now;
+            long schoolId = 0;
 
-            // Fix: Correctly use the DbSet for 'info1' instead of 'Info2'
-            var schoolInfo = new info1
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[Create_School]", conn)
             {
-                schoolLevel = dto.SchoolLevel,
-                CoachID = dto.CoachID,
-                FirstDay = dto.FirstDay,
-                SecondDay = dto.SecondDay,
-                SchoolType = dto.Type,
-                site = dto.Site,
-                createdAtSite = dto.Site,
-                createdBy = dto.User,
-                createdAtDate = now,
-                StartTime = (decimal)dto.StartTime.TotalHours,
-                EndTime = (decimal)dto.EndTime.TotalHours
+                CommandType = CommandType.StoredProcedure
             };
 
-            _context.infos.Add(schoolInfo); // Correctly reference the DbSet for 'info1'
-            await _context.SaveChangesAsync();
+            cmd.Parameters.AddWithValue("@SchoolLevel", dto.SchoolLevel);
+            cmd.Parameters.AddWithValue("@coachID", dto.CoachID);
+            cmd.Parameters.AddWithValue("@FirstDay", dto.FirstDay);
+            cmd.Parameters.AddWithValue("@SecondDay", dto.SecondDay);
+            cmd.Parameters.AddWithValue("@StartTime", dto.StartTime);
+            cmd.Parameters.AddWithValue("@EndTime", dto.EndTime);
+            cmd.Parameters.AddWithValue("@Type", dto.Type);
+            cmd.Parameters.AddWithValue("@site", dto.Site);
+            cmd.Parameters.AddWithValue("@user", dto.User);
 
-            var schoolLog = new log1
-            {
-                schoolID = schoolInfo.SchoolID,
-                ActionID = 12,
-                createdAtsite = dto.Site,
-                CreatedBy = dto.User,
-                CreatedAtDate = DateOnly.FromDateTime(now)
-            };
+            // To capture the SchoolID if returned by SELECT SCOPE_IDENTITY()
+            await conn.OpenAsync();
 
-            _context.logs1.Add(schoolLog);
-            await _context.SaveChangesAsync();
+            using var getIdCmd = new SqlCommand("SELECT CAST(SCOPE_IDENTITY() AS BIGINT);", conn);
+            await cmd.ExecuteNonQueryAsync();
+            schoolId = Convert.ToInt64(await getIdCmd.ExecuteScalarAsync());
 
-            return schoolInfo.SchoolID;
+            return schoolId;
         }
-        public async Task EndSchoolAsync(EndSchoolDto dto)
+        public async Task<bool> EndSchoolAsync(EndSchoolDto dto)
         {
-            var now = DateTime.Now;
-
-            // 1. Insert into Schools.Ended
-            var ended = new Ended1
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[EndSchool]", conn)
             {
-                Schoolid = dto.SchoolID,
-                EndedAt = DateOnly.FromDateTime(now), // Correct conversion
-                EndedBy = dto.UserID
+                CommandType = CommandType.StoredProcedure
             };
-            _context.Endeds1.Add(ended);
 
-            var details = _context.Details1.Where(d => d.SchoolID == dto.SchoolID);
-            _context.Details1.RemoveRange(details);
+            cmd.Parameters.AddWithValue("@schoolID", dto.SchoolID);
+            cmd.Parameters.AddWithValue("@userID", dto.UserID);
+            cmd.Parameters.AddWithValue("@site", dto.Site);
 
-            var log = new log1
+            await conn.OpenAsync();
+            int rows = await cmd.ExecuteNonQueryAsync();
+
+            return rows > 0;
+        }
+
+        public async Task<SchoolDetailsTabDto?> GetSchoolDetailsAsync(long schoolId)
+        {
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[SchoolDetalis_Tab]", conn)
             {
-                schoolID = dto.SchoolID,
-                ActionID = 18,
-                createdAtsite = dto.Site,
-                CreatedBy = dto.UserID,
-                CreatedAtDate = DateOnly.FromDateTime(now) // Correct conversion
+                CommandType = CommandType.StoredProcedure
             };
-            _context.logs1.Add(log);
 
-            await _context.SaveChangesAsync();
+            cmd.Parameters.AddWithValue("@schoolID", schoolId);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            if (await reader.ReadAsync())
+            {
+                return new SchoolDetailsTabDto
+                {
+                    CoachName = reader["FullName"].ToString() ?? "",
+                    FirstDay = reader["FirstDay"].ToString() ?? "",
+                    SecondDay = reader["SecondDay"].ToString() ?? "",
+                    StartTime = (TimeSpan)reader["StartTime"],
+                    EndTime = (TimeSpan)reader["EndTime"],
+                    Capacity = Convert.ToInt32(reader["Capacity"]),
+                    NumberOfSwimmers = Convert.ToInt32(reader["NumberOfSwimmers"]),
+                    IsEnded = Convert.ToBoolean(reader["ISEnded"])
+                };
+            }
+
+            return null;
         }
-        public async Task<SchoolDetailsTabDto?> GetSchoolDetailsTabAsync(long schoolId)
+
+        public async Task<List<SearchActionResponseDto>> SearchSchoolActionsAsync(SearchSchoolActionRequestDto request)
         {
-            var result = await (from i in _context.Infos1 // Correctly reference the DbSet for Info2
-                                join c in _context.Coaches on i.CreatedBy equals c.CoachID // Fix: Use 'CreatedBy' instead of 'CoachID' as Info2 does not have a 'CoachID' property
-                                where i.SwimmerID == schoolId // Fix: Use 'SwimmerID' instead of 'SchoolID' as Info2 does not have a 'SchoolID' property
-                                select new SchoolDetailsTabDto
-                                {
-                                    FullName = c.FullName,
-                                    FirstDay = i.createdAtDate.ToString("yyyy-MM-dd"), // Fix: Replace 'CreatedAtDate' with 'createdAtDate' as per Info2 definition
-                                    SecondDay = i.UpdatedAtDate.HasValue ? i.UpdatedAtDate.Value.ToString("yyyy-MM-dd") : DateTime.MinValue.ToString("yyyy-MM-dd"), // Fix: Replace 'UpdatedAtDate' with 'updatedAtDate' as per Info2 definition
-                                    StartTime = TimeSpan.FromHours(8), // Placeholder value as Info2 does not have 'StartTime'
-                                    EndTime = TimeSpan.FromHours(16), // Placeholder value as Info2 does not have 'EndTime'
-                                    NumberOfSwimmers = 0, // Placeholder value as Info2 does not have 'NumberOfSwimmers'
-                                    ISEnded = false // Default value
-                                }).FirstOrDefaultAsync();
+            var actions = new List<SearchActionResponseDto>();
 
-            return result;
-        }
-        public async Task<List<ActionNameDto>> SearchActionsAsync(int userId, long schoolId, short userSite)
-        {
-            // 1. Get userTypeID
-            var userTypeId = await _context.users
-                .Where(u => u.userid == userId)
-                .Select(u => u.UserTypeID)
-                .FirstOrDefaultAsync();
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[SearchActions]", conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
 
-            // 2. Get SchoolSite
-            var schoolSite = await _context.infos // Correctly reference the DbSet for 'info1'
-                .Where(i => i.SchoolID == schoolId) // Fix: Ensure 'info1' has a 'SchoolID' property
-                .Select(i => i.site)
-                .FirstOrDefaultAsync();
+            cmd.Parameters.AddWithValue("@UserID", request.UserID);
+            cmd.Parameters.AddWithValue("@SchoolID", request.SchoolID);
+            cmd.Parameters.AddWithValue("@userSite", request.UserSite);
 
-            // 3. Build query based on site comparison
-            bool sameSite = userSite == schoolSite;
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
 
-            var actionsQuery = from up in _context.Users_Privs
-                               join a in _context.Actions on up.ActionID equals a.ActionID
-                               where up.UserTypeID == userTypeId
-                                     && a.Module == "Mod_SC"
-                                     && a.SameSite == sameSite // Fix: Compare 'bool?' with 'bool' directly
-                                     && a.ActionID != 12
-                               select new ActionNameDto
-                               {
-                                   ActionName = a.ActionName
-                               };
-
-            var actions = await actionsQuery
-                .OrderBy(a => a.ActionName)
-                .ToListAsync();
+            while (await reader.ReadAsync())
+            {
+                actions.Add(new SearchActionResponseDto
+                {
+                    ActionName = reader["ActionName"].ToString() ?? ""
+                });
+            }
 
             return actions;
         }
 
-        public async Task<List<ShowSchoolDto>> ShowSchoolAsync(long? schoolId, string? fullName, short? level, short? type)
+        public async Task<List<ShowSchoolResponseDto>> ShowSchoolAsync(ShowSchoolRequestDto request)
         {
-            var query = from i in _context.infos // Correctly reference the DbSet for 'info1'
-                        join c in _context.Coaches on i.CoachID equals c.CoachID
-                        join l in _context.AppCodes on i.schoolLevel equals l.sub_id
-                        join st in _context.AppCodes on i.SchoolType equals st.sub_id
-                        select new ShowSchoolDto
-                        {
-                            CoachName = c.FullName,
-                            Level = l.description,
-                            Type = st.description,
-                            Days = i.FirstDay + " - " + i.SecondDay,
-                            FromTo =
-                                TimeSpan.FromHours((double)i.StartTime).ToString(@"hh\:mm") + " : " +
-                                TimeSpan.FromHours((double)i.EndTime).ToString(@"hh\:mm"),
-                            NumberCapacity = i.NumberOfSwimmers != null
-                                ? i.NumberOfSwimmers.ToString() + " : " + "N/A" // Replace 'Capacity' with a placeholder as 'info1' does not have 'Capacity'
-                                : "N/A : N/A" // Handle null case for 'NumberOfSwimmers'
-                        };
+            var result = new List<ShowSchoolResponseDto>();
 
-            if (schoolId.HasValue)
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[ShowSchool]", conn)
             {
-                query = query.Where(x => x.CoachName == fullName); // Fix: Replace 'i.SchoolID' with a valid property from the query result
-            }
-            else if (!string.IsNullOrEmpty(fullName))
-            {
-                query = query.Where(x => x.CoachName.Contains(fullName)); // Fix: Replace 'c.FullName' with 'x.CoachName'
-            }
-            else if (level.HasValue)
-            {
-                query = query.Where(x => x.Level == level.Value.ToString()); // Fix: Replace 'i.schoolLevel' with 'x.Level'
-            }
-            else if (type.HasValue)
-            {
-                query = query.Where(x => x.Type == type.Value.ToString()); // Fix: Replace 'i.SchoolType' with 'x.Type'
-            }
-            else
-            {
-                return new List<ShowSchoolDto>();
-            }
+                CommandType = CommandType.StoredProcedure
+            };
 
-            return await query.ToListAsync();
-        }
-        public async Task<List<SwimmerDetailsTabDto>> GetSwimmerDetailsTabAsync(long schoolId)
-        {
-            var result = await (from d in _context.Details1
-                                join i in _context.Infos1 on d.SwimmerID equals i.SwimmerID
-                                join level in _context.AppCodes on i.CurrentLevel equals level.sub_id
-                                where d.SchoolID == schoolId
-                                select new SwimmerDetailsTabDto
-                                {
-                                    FullName = i.FulllName,
-                                    Attendence = d.Attendence.HasValue ? d.Attendence.Value.ToString("F2") : "N/A", // Fix for CS0029: Convert nullable decimal to string
-                                    SwimmerLevel = level.description
-                                }).ToListAsync();
+            cmd.Parameters.AddWithValue("@SchoolID", request.SchoolID ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@FullName", request.FullName ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@level", request.Level ?? (object)DBNull.Value);
+            cmd.Parameters.AddWithValue("@type", request.Type ?? (object)DBNull.Value);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                result.Add(new ShowSchoolResponseDto
+                {
+                    CoachName = reader["CoachName"].ToString() ?? "",
+                    Level = reader["Level"].ToString() ?? "",
+                    Type = reader["Type"].ToString() ?? "",
+                    Days = reader["Days"].ToString() ?? "",
+                    FromTo = reader["FromTo"].ToString() ?? "",
+                    NumberCapacity = reader["NumberCapacity"].ToString() ?? ""
+                });
+            }
 
             return result;
         }
-        public async Task UpdateSchoolAsync(UpdateSchoolDto dto)
+
+        public async Task<List<SwimmerDetailsTabDto>> GetSchoolSwimmerDetailsAsync(long schoolId)
         {
-            var school = await _context.infos.FirstOrDefaultAsync(i => i.SchoolID == dto.SchoolID);
-            if (school == null)
-                throw new InvalidOperationException("School not found.");
+            var result = new List<SwimmerDetailsTabDto>();
 
-            school.CoachID = dto.CoachID;
-            school.FirstDay = dto.FirstDay;
-            school.SecondDay = dto.SecondDay;
-            school.updatedAtSite = dto.Site;
-            school.updatedBy = dto.User;
-            school.updatedAtDate = DateTime.Now;
-            school.StartTime = (decimal)dto.StartTime.TotalHours;
-            school.EndTime = (decimal)dto.EndTime.TotalHours;
-            school.SchoolType = dto.Type;
-
-            // Log the update action
-            var log = new log1
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[SwimmerDetails_Tab]", conn)
             {
-                schoolID = dto.SchoolID,
-                ActionID = 15,
-                createdAtsite = dto.Site,
-                CreatedBy = dto.User,
-                CreatedAtDate = DateOnly.FromDateTime(DateTime.Now)
+                CommandType = CommandType.StoredProcedure
             };
-            _context.logs1.Add(log);
 
-            await _context.SaveChangesAsync();
+            cmd.Parameters.AddWithValue("@schoolID", schoolId);
+
+            await conn.OpenAsync();
+            using var reader = await cmd.ExecuteReaderAsync();
+
+            while (await reader.ReadAsync())
+            {
+                result.Add(new SwimmerDetailsTabDto
+                {
+                    FullName = reader["FullName"].ToString() ?? "",
+                    Attendence = reader["Attendence"].ToString() ?? "",
+                    SwimmerLevel = reader["SwimmerLevel"].ToString() ?? ""
+                });
+            }
+
+            return result;
         }
+
+        public async Task<bool> UpdateSchoolAsync(UpdateSchoolDto dto)
+        {
+            using var conn = new SqlConnection(_configuration.GetConnectionString("DefaultConnection"));
+            using var cmd = new SqlCommand("[Schools].[Updated]", conn)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            cmd.Parameters.AddWithValue("@schoolID", dto.SchoolID);
+            cmd.Parameters.AddWithValue("@coachID", dto.CoachID);
+            cmd.Parameters.AddWithValue("@FirstDay", dto.FirstDay);
+            cmd.Parameters.AddWithValue("@SecondDay", dto.SecondDay);
+            cmd.Parameters.AddWithValue("@StartTime", dto.StartTime);
+            cmd.Parameters.AddWithValue("@EndTime", dto.EndTime);
+            cmd.Parameters.AddWithValue("@Type", dto.Type);
+            cmd.Parameters.AddWithValue("@site", dto.Site);
+            cmd.Parameters.AddWithValue("@user", dto.User);
+
+            await conn.OpenAsync();
+            int rowsAffected = await cmd.ExecuteNonQueryAsync();
+
+            return rowsAffected > 0;
+        }
+
 
     }
 }

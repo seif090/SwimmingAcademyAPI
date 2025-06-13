@@ -15,64 +15,65 @@ namespace SwimmingAcademy.Controllers
             _preTeamService = preTeamService;
         }
 
-        [HttpPost("create")]
-        public async Task<ActionResult<long>> CreatePTeam([FromBody] CreatePTeamDto dto)
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreatePreTeam([FromBody] CreatePreTeamDto dto)
         {
-            var id = await _preTeamService.CreatePTeamAsync(
-                dto.PTeamLevel,
-                dto.CoachID,
-                dto.FirstDay,
-                dto.SecondDay,
-                dto.ThirdDay,
-                dto.Site,
-                dto.User,
-                dto.StartTime,
-                dto.EndTime);
-
-            return Ok(id);
+            var pTeamId = await _preTeamService.CreatePreTeamAsync(dto);
+            return Ok(new { Message = "PreTeam created successfully", PTeamID = pTeamId });
         }
 
-        [HttpPost("end")]
+        [HttpPost("End")]
         public async Task<IActionResult> EndPreTeam([FromBody] EndPreTeamDto dto)
         {
-            await _preTeamService.EndPreTeamAsync(dto.PteamID, dto.UserID, dto.Site);
-            return Ok();
+            var success = await _preTeamService.EndPreTeamAsync(dto);
+            if (success)
+                return Ok(new { Message = "PreTeam ended successfully." });
+            else
+                return BadRequest(new { Message = "Failed to end PreTeam." });
         }
 
-        [HttpGet("details/{pteamId:long}")]
-        public async Task<ActionResult<PreTeamDetailsDto>> GetPTeamDetails(long pteamId)
+        [HttpGet("Details/{preTeamId}")]
+        public async Task<ActionResult<PreTeamDetailsDto>> GetPreTeamDetails(long preTeamId)
         {
-            var details = await _preTeamService.GetPTeamDetailsAsync(pteamId);
-            if (details is null)
-                return NotFound();
-            return Ok();
-        }
+            var details = await _preTeamService.GetPreTeamDetailsAsync(preTeamId);
+            if (details == null)
+                return NotFound(new { Message = "PreTeam not found." });
 
-        [HttpGet("swimmer-details/{pteamId:long}")]
-        public async Task<ActionResult<List<SwimmerDetailsTabDto>>> GetSwimmerDetailsTab(long pteamId)
-        {
-            var details = await _preTeamService.GetSwimmerDetailsTabAsync(pteamId);
             return Ok(details);
         }
 
-        [HttpGet("actions")]
-        public async Task<ActionResult<List<ActionNameDto>>> SearchActions(
-            [FromQuery] int userId,
-            [FromQuery] long pteamId,
-            [FromQuery] short userSite)
+        [HttpGet("SwimmerDetails/{pTeamId}")]
+        public async Task<ActionResult<List<SwimmerDetailsTabDto>>> GetSwimmerDetails(long pTeamId)
         {
-            var actions = await _preTeamService.SearchActionsAsync(userId, pteamId, userSite);
-            return Ok(actions);
-        }
-
-        [HttpGet("show")]
-        public async Task<ActionResult<List<ShowPreTeamDto>>> ShowPreTeam(
-            [FromQuery] long? pteamId,
-            [FromQuery] string? fullName,
-            [FromQuery] short? level)
-        {
-            var result = await _preTeamService.ShowPreTeamAsync(pteamId, fullName, level);
+            var result = await _preTeamService.GetSwimmerDetailsAsync(pTeamId);
             return Ok(result);
         }
+
+
+        [HttpPost("SearchActions")]
+        public async Task<ActionResult<List<SearchActionResponseDto>>> SearchActions([FromBody] SearchActionRequestDto request)
+        {
+            var result = await _preTeamService.SearchActionsAsync(request);
+            return Ok(result);
+        }
+
+
+        [HttpPost("Show")]
+        public async Task<ActionResult<List<ShowPreTeamResponseDto>>> ShowPreTeam([FromBody] ShowPreTeamRequestDto request)
+        {
+            var result = await _preTeamService.ShowPreTeamAsync(request);
+            return Ok(result);
+        }
+        [HttpPut("Update")]
+        public async Task<IActionResult> UpdatePreTeam([FromBody] UpdatePreTeamDto dto)
+        {
+            var success = await _preTeamService.UpdatePreTeamAsync(dto);
+            if (success)
+                return Ok(new { Message = "PreTeam updated successfully." });
+
+            return BadRequest(new { Message = "Update failed. Please check PTeamID." });
+        }
+
+
     }
 }

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using SwimmingAcademy.Data;
 using SwimmingAcademy.DTOs;
+using SwimmingAcademy.Helpers;
 using SwimmingAcademy.Models;
 using SwimmingAcademy.Services.Interfaces;
 using System.Data;
@@ -12,11 +13,12 @@ namespace SwimmingAcademy.Services
     {
         private readonly SwimmingAcademyContext _context;
         private readonly IConfiguration _configuration;
-
-        public UserService(SwimmingAcademyContext context, IConfiguration configuration)
+        private readonly JwtTokenGenerator _tokenGenerator;
+        public UserService(SwimmingAcademyContext context, IConfiguration configuration, JwtTokenGenerator tokenGenerator)
         {
             _context = context;
             _configuration = configuration;
+            _tokenGenerator = tokenGenerator;
         }
 
         public async Task<LoginResponseDto> LoginAsync(LoginDto request)
@@ -40,6 +42,13 @@ namespace SwimmingAcademy.Services
             if (reader.Read())
             {
                 response.Message = reader.GetString(0);
+            }
+            if (response.Message == "Log in succsess")
+            {
+                // Fetch user type for role claim
+                string userType = await GetUserTypeById(request.UserId, conn);
+                string token = _tokenGenerator.GenerateToken(request.UserId, userType);
+                response.Token = token;
             }
 
             // If login failed or user is disabled, no need to continue
@@ -65,6 +74,13 @@ namespace SwimmingAcademy.Services
             }
 
             return response;
+        }
+        private async Task<string> GetUserTypeById(int userId, SqlConnection conn)
+        {
+            using var cmd = new SqlCommand("SELECT UserTypeID FROM Users WHERE UserID = @id", conn);
+            cmd.Parameters.AddWithValue("@id", userId);
+            var result = await cmd.ExecuteScalarAsync();
+            return result?.ToString() ?? "User";
         }
     }
 }

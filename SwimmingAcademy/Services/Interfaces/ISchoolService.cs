@@ -5,12 +5,12 @@ namespace SwimmingAcademy.Services.Interfaces
     public interface ISchoolService
     {
         Task<long> CreateSchoolAsync(CreateSchoolDto dto);
-        Task EndSchoolAsync(EndSchoolDto dto);
-        Task<SchoolDetailsTabDto?> GetSchoolDetailsTabAsync(long schoolId);
-        Task<List<ActionNameDto>> SearchActionsAsync(int userId, long schoolId, short userSite);
-        Task<List<ShowSchoolDto>> ShowSchoolAsync(long? schoolId, string? fullName, short? level, short? type);
-        Task<List<SwimmerDetailsTabDto>> GetSwimmerDetailsTabAsync(long schoolId);
-        Task UpdateSchoolAsync(UpdateSchoolDto dto);
+        Task<bool> EndSchoolAsync(EndSchoolDto dto);
+        Task<SchoolDetailsTabDto?> GetSchoolDetailsAsync(long schoolId); // ✅ New
+        Task<List<SearchActionResponseDto>> SearchSchoolActionsAsync(SearchSchoolActionRequestDto request); // ✅ New
+        Task<List<ShowSchoolResponseDto>> ShowSchoolAsync(ShowSchoolRequestDto request); // ✅ NEW
+        Task<List<SwimmerDetailsTabDto>> GetSchoolSwimmerDetailsAsync(long schoolId); // ✅ NEW
+        Task<bool> UpdateSchoolAsync(UpdateSchoolDto dto); // ✅ NEW
 
     }
 }

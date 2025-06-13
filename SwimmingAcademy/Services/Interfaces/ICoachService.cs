@@ -1,7 +1,9 @@
-﻿namespace SwimmingAcademy.Services.Interfaces
+﻿using SwimmingAcademy.DTOs;
+
+namespace SwimmingAcademy.Services.Interfaces
 {
     public interface ICoachService
     {
-        Task<IEnumerable<string>> GetFreeCoachesAsync(short type, TimeSpan startTime, string firstDay, short site);
+        Task<List<FreeCoachDto>> GetFreeCoachesAsync(FreeCoachRequestDto request);
     }
 }

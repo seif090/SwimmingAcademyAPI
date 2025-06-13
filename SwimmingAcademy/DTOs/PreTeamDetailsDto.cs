@@ -2,15 +2,12 @@
 {
     public class PreTeamDetailsDto
     {
-        public string FullName { get; set; }
-        public string FirstDay { get; set; }
-        public string SecondDay { get; set; }
-        public string ThirdDay { get; set; }
+        public string CoachName { get; set; } = string.Empty;
+        public string FirstDay { get; set; } = string.Empty;
+        public string SecondDay { get; set; } = string.Empty;
+        public string ThirdDay { get; set; } = string.Empty;
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
-        public bool ISEnded
-        {
-            get; set;
-        }
+        public bool IsEnded { get; set; }
     }
 }

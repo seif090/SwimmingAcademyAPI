@@ -6,17 +6,17 @@ namespace SwimmingAcademy.Services.Interfaces
     {
         Task<IEnumerable<SwimmerDto>> GetAllSwimmersAsync();
         Task<SwimmerDto?> GetSwimmerById(long id);
-        Task<long> AddSwimmerAsync(AddSwimmerDto dto);
-        Task<long> ChangeSiteAsync(ChangeSiteDto dto);
-        Task DropSwimmerAsync(long swimmerId);
-        Task<SwimmerInfoTabDto?> GetSwimmerInfoTabAsync(long swimmerId);
-        Task<List<SwimmerLogTabDto>> GetSwimmerLogTabAsync(long swimmerId);
+        Task<AddSwimmerResponseDto> AddSwimmerAsync(AddSwimmerDto dto);
+        Task<ChangeSiteResponseDto> ChangeSwimmerSiteAsync(ChangeSwimmerSiteDto dto); // ✅ New
+        Task<bool> DropSwimmerAsync(long swimmerId); // ✅ New
+        Task<SwimmerInfoTabDto?> GetSwimmerInfoAsync(long swimmerId); // ✅ NEW
+        Task<List<SwimmerLogTabDto>> GetSwimmerLogAsync(long swimmerId); // ✅ NEW
         Task<TechnicalTabResultDto?> GetTechnicalTabAsync(long swimmerId);
-        Task<List<ActionNameDto>> SearchActionsAsync(int userId, long swimmerId, short userSite);
-        Task<List<ShowSwimmerDto>> ShowSwimmersAsync(long? swimmerId, string? fullName, string? year, short? level);
-        Task UpdateSwimmerAsync(UpdateSwimmerDto dto);
-        Task UpdateSwimmerLevelAsync(UpdateSwimmerLevelDto dto);
-        Task<ViewPossibleSchoolResultDto> ViewPossibleSchoolAsync(long swimmerId, short type);
+        Task<List<SearchActionResponseDto>> SearchSwimmerActionsAsync(SearchSwimmerActionRequestDto request); // ✅ NEW
+        Task<List<ShowSwimmerResponseDto>> ShowSwimmersAsync(ShowSwimmerRequestDto request); // ✅ NEW
+        Task<UpdateSwimmerResponseDto> UpdateSwimmerAsync(UpdateSwimmerDto dto); // ✅ NEW
+        Task<UpdateSwimmerLevelResponseDto> UpdateSwimmerLevelAsync(UpdateSwimmerLevelDto dto);
+        Task<ViewPossibleSchoolResponseDto> ViewPossibleSchoolsAsync(ViewPossibleSchoolRequestDto dto);
 
     }
 }

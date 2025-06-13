@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Services.Interfaces;
 
 namespace SwimmingAcademy.Controllers
@@ -14,15 +15,11 @@ namespace SwimmingAcademy.Controllers
             _coachService = coachService;
         }
 
-        [HttpGet("free")]
-        public async Task<ActionResult<IEnumerable<string>>> GetFreeCoaches(
-            [FromQuery] short type,
-            [FromQuery] TimeSpan startTime,
-            [FromQuery] string firstDay,
-            [FromQuery] short site)
+        [HttpPost("Free")]
+        public async Task<ActionResult<List<FreeCoachDto>>> GetFreeCoaches([FromBody] FreeCoachRequestDto request)
         {
-            var freeCoaches = await _coachService.GetFreeCoachesAsync(type, startTime, firstDay, site);
-            return Ok(freeCoaches);
+            var result = await _coachService.GetFreeCoachesAsync(request);
+            return Ok(result);
         }
     }
 }

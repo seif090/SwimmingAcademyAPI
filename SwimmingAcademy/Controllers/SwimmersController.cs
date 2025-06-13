@@ -33,67 +33,78 @@ namespace SwimmingAcademy.Controllers
 
             return Ok(swimmer);
         }
-        [HttpPost("add")]
-        public async Task<ActionResult<long>> AddSwimmer([FromBody] AddSwimmerDto dto)
+        [HttpPost("Add")]
+        public async Task<ActionResult<AddSwimmerResponseDto>> AddSwimmer([FromBody] AddSwimmerDto dto)
         {
-            var id = await _swimmerService.AddSwimmerAsync(dto);
-            return Ok(id);
-        }
-        [HttpPost("change-site")]
-        public async Task<ActionResult<long>> ChangeSite([FromBody] ChangeSiteDto dto)
-        {
-            var id = await _swimmerService.ChangeSiteAsync(dto);
-            return Ok(id);
-        }
-        [HttpDelete("drop/{swimmerId:long}")]
-        public async Task<IActionResult> DropSwimmer(long swimmerId)
-        {
-            await _swimmerService.DropSwimmerAsync(swimmerId);
-            return Ok();
-        }
-        [HttpGet("info-tab/{swimmerId:long}")]
-        public async Task<ActionResult<SwimmerInfoTabDto>> GetSwimmerInfoTab(long swimmerId)
-        {
-            var info = await _swimmerService.GetSwimmerInfoTabAsync(swimmerId);
-            if (info is null)
-                return NotFound();
-            return Ok(info);
-        }
-        [HttpGet("log-tab/{swimmerId:long}")]
-        public async Task<ActionResult<List<SwimmerLogTabDto>>> GetSwimmerLogTab(long swimmerId)
-        {
-            var logs = await _swimmerService.GetSwimmerLogTabAsync(swimmerId);
-            return Ok(logs);
-        }
-        [HttpGet("actions")]
-        public async Task<ActionResult<List<ActionNameDto>>> SearchActions(
-    [FromQuery] int userId,
-    [FromQuery] long swimmerId,
-    [FromQuery] short userSite)
-        {
-            var actions = await _swimmerService.SearchActionsAsync(userId, swimmerId, userSite);
-            return Ok(actions);
-        }
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdateSwimmer([FromBody] UpdateSwimmerDto dto)
-        {
-            await _swimmerService.UpdateSwimmerAsync(dto);
-            return Ok();
-        }
-        [HttpPut("update-level")]
-        public async Task<IActionResult> UpdateSwimmerLevel([FromBody] UpdateSwimmerLevelDto dto)
-        {
-            await _swimmerService.UpdateSwimmerLevelAsync(dto);
-            return Ok();
-        }
-        [HttpGet("view-possible-school")]
-        public async Task<ActionResult<ViewPossibleSchoolResultDto>> ViewPossibleSchool(
-    [FromQuery] long swimmerId,
-    [FromQuery] short type)
-        {
-            var result = await _swimmerService.ViewPossibleSchoolAsync(swimmerId, type);
+            var result = await _swimmerService.AddSwimmerAsync(dto);
             return Ok(result);
         }
+        [HttpPut("ChangeSite")]
+        public async Task<ActionResult<ChangeSiteResponseDto>> ChangeSite([FromBody] ChangeSwimmerSiteDto dto)
+        {
+            var result = await _swimmerService.ChangeSwimmerSiteAsync(dto);
+            return Ok(result);
+        }
+        [HttpDelete("Delete/{swimmerId}")]
+        public async Task<ActionResult<DropSwimmerResponseDto>> DeleteSwimmer(long swimmerId)
+        {
+            var success = await _swimmerService.DropSwimmerAsync(swimmerId);
+
+            if (success)
+                return Ok(new DropSwimmerResponseDto());
+            else
+                return NotFound(new { Message = "Swimmer not found or already deleted." });
+        }
+
+        [HttpGet("Info/{swimmerId}")]
+        public async Task<ActionResult<SwimmerInfoTabDto>> GetSwimmerInfo(long swimmerId)
+        {
+            var info = await _swimmerService.GetSwimmerInfoAsync(swimmerId);
+            if (info == null)
+                return NotFound(new { Message = "Swimmer not found." });
+
+            return Ok(info);
+        }
+
+        [HttpGet("Log/{swimmerId}")]
+        public async Task<ActionResult<List<SwimmerLogTabDto>>> GetSwimmerLog(long swimmerId)
+        {
+            var log = await _swimmerService.GetSwimmerLogAsync(swimmerId);
+            return Ok(log);
+        }
+        [HttpPost("SearchActions")]
+        public async Task<ActionResult<List<SearchActionResponseDto>>> SearchSwimmerActions([FromBody] SearchSwimmerActionRequestDto request)
+        {
+            var actions = await _swimmerService.SearchSwimmerActionsAsync(request);
+            return Ok(actions);
+        }
+        [HttpPost("Search")]
+        public async Task<ActionResult<List<ShowSwimmerResponseDto>>> SearchSwimmers([FromBody] ShowSwimmerRequestDto request)
+        {
+            var result = await _swimmerService.ShowSwimmersAsync(request);
+            return Ok(result);
+        }
+
+        [HttpPut("Update")]
+        public async Task<ActionResult<UpdateSwimmerResponseDto>> UpdateSwimmer([FromBody] UpdateSwimmerDto dto)
+        {
+            var response = await _swimmerService.UpdateSwimmerAsync(dto);
+            return Ok(response);
+        }
+        [HttpPut("UpdateLevel")]
+        public async Task<ActionResult<UpdateSwimmerLevelResponseDto>> UpdateSwimmerLevel([FromBody] UpdateSwimmerLevelDto dto)
+        {
+            var response = await _swimmerService.UpdateSwimmerLevelAsync(dto);
+            return Ok(response);
+        }
+
+        [HttpPost("ViewPossibleSchool")]
+        public async Task<ActionResult<ViewPossibleSchoolResponseDto>> ViewPossibleSchool([FromBody] ViewPossibleSchoolRequestDto dto)
+        {
+            var result = await _swimmerService.ViewPossibleSchoolsAsync(dto);
+            return Ok(result);
+        }
+
         [HttpGet("SwimmerTechnicalTab/{swimmerId}")]
         public async Task<ActionResult<TechnicalTabResultDto>> GetSwimmerTechnicalTab(long swimmerId)
         {

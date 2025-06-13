@@ -4,8 +4,8 @@
     {
         public long SchoolID { get; set; }
         public int CoachID { get; set; }
-        public string FirstDay { get; set; }
-        public string SecondDay { get; set; }
+        public string FirstDay { get; set; } = string.Empty;
+        public string SecondDay { get; set; } = string.Empty;
         public TimeSpan StartTime { get; set; }
         public TimeSpan EndTime { get; set; }
         public short Type { get; set; }

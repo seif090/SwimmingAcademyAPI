@@ -15,47 +15,61 @@ namespace SwimmingAcademy.Controllers
             _schoolService = schoolService;
         }
 
-        [HttpPost("create")]
-        public async Task<ActionResult<long>> CreateSchool([FromBody] CreateSchoolDto dto)
+        [HttpPost("Create")]
+        public async Task<IActionResult> CreateSchool([FromBody] CreateSchoolDto dto)
         {
-            var id = await _schoolService.CreateSchoolAsync(dto);
-            return Ok(id);
+            var schoolId = await _schoolService.CreateSchoolAsync(dto);
+            return Ok(new { Message = "School created successfully.", SchoolID = schoolId });
         }
-        [HttpPost("end")]
+        [HttpPost("End")]
         public async Task<IActionResult> EndSchool([FromBody] EndSchoolDto dto)
         {
-            await _schoolService.EndSchoolAsync(dto);
-            return Ok();
+            var success = await _schoolService.EndSchoolAsync(dto);
+            if (success)
+                return Ok(new { Message = "School ended successfully." });
+
+            return BadRequest(new { Message = "Failed to end the school." });
         }
-        [HttpGet("details/{schoolId:long}")]
-        public async Task<ActionResult<SchoolDetailsTabDto>> GetSchoolDetailsTab(long schoolId)
+        [HttpGet("Details/{schoolId}")]
+        public async Task<ActionResult<SchoolDetailsTabDto>> GetSchoolDetails(long schoolId)
         {
-            var details = await _schoolService.GetSchoolDetailsTabAsync(schoolId);
-            if (details is null)
-                return NotFound();
-            return Ok(details);
+            var result = await _schoolService.GetSchoolDetailsAsync(schoolId);
+            if (result == null)
+                return NotFound(new { Message = "School not found." });
+
+            return Ok(result);
         }
-       
-        [HttpGet("actions")]
-        public async Task<ActionResult<List<ActionNameDto>>> SearchActions(
-            [FromQuery] int userId,
-            [FromQuery] long schoolId,
-            [FromQuery] short userSite)
+
+
+        [HttpPost("SearchActions")]
+        public async Task<ActionResult<List<SearchActionResponseDto>>> SearchActions([FromBody] SearchSchoolActionRequestDto request)
         {
-            var actions = await _schoolService.SearchActionsAsync(userId, schoolId, userSite);
-            return Ok(actions);
+            var result = await _schoolService.SearchSchoolActionsAsync(request);
+            return Ok(result);
         }
-        [HttpGet("swimmer-details/{schoolId:long}")]
-        public async Task<ActionResult<List<SwimmerDetailsTabDto>>> GetSwimmerDetailsTab(long schoolId)
+        [HttpPost("Show")]
+        public async Task<ActionResult<List<ShowSchoolResponseDto>>> ShowSchool([FromBody] ShowSchoolRequestDto request)
         {
-            var details = await _schoolService.GetSwimmerDetailsTabAsync(schoolId);
-            return Ok(details);
+            var result = await _schoolService.ShowSchoolAsync(request);
+            return Ok(result);
         }
-        [HttpPut("update")]
+
+        [HttpGet("SwimmerDetails/{schoolId}")]
+        public async Task<ActionResult<List<SwimmerDetailsTabDto>>> GetSchoolSwimmerDetails(long schoolId)
+        {
+            var result = await _schoolService.GetSchoolSwimmerDetailsAsync(schoolId);
+            return Ok(result);
+        }
+
+        [HttpPut("Update")]
         public async Task<IActionResult> UpdateSchool([FromBody] UpdateSchoolDto dto)
         {
-            await _schoolService.UpdateSchoolAsync(dto);
-            return Ok();
+            var success = await _schoolService.UpdateSchoolAsync(dto);
+            if (success)
+                return Ok(new { Message = "School updated successfully." });
+
+            return BadRequest(new { Message = "Update failed. Please check the SchoolID." });
         }
+
     }
 }
