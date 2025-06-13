@@ -33,5 +33,23 @@ namespace SwimmingAcademy.Controllers
 
             return Ok(swimmer);
         }
+        [HttpPost("add")]
+        public async Task<ActionResult<long>> AddSwimmer([FromBody] AddSwimmerDto dto)
+        {
+            var id = await _swimmerService.AddSwimmerAsync(dto);
+            return Ok(id);
+        }
+        [HttpPost("change-site")]
+        public async Task<ActionResult<long>> ChangeSite([FromBody] ChangeSiteDto dto)
+        {
+            var id = await _swimmerService.ChangeSiteAsync(dto);
+            return Ok(id);
+        }
+        [HttpDelete("drop/{swimmerId:long}")]
+        public async Task<IActionResult> DropSwimmer(long swimmerId)
+        {
+            await _swimmerService.DropSwimmerAsync(swimmerId);
+            return Ok();
+        }
     }
 }
