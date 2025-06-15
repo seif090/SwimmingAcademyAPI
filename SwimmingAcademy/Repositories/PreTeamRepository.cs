@@ -55,7 +55,6 @@ namespace SwimmingAcademy.Repositories
             command.CommandText = "[PreTeam].[ShowPTeam]";
             command.CommandType = CommandType.StoredProcedure;
 
-            // Supply only one parameter as per stored procedure logic
             command.Parameters.Add(new SqlParameter("@PTeamID", (object?)request.PTeamID ?? DBNull.Value));
             command.Parameters.Add(new SqlParameter("@FullName", (object?)request.FullName ?? DBNull.Value));
             command.Parameters.Add(new SqlParameter("@level", (object?)request.Level ?? DBNull.Value));
@@ -68,15 +67,17 @@ namespace SwimmingAcademy.Repositories
             {
                 result.Add(new PTeamSearchResultDto
                 {
-                    CoachName = reader.IsDBNull(0) ? "" : reader.GetString(0),
-                    Level = reader.IsDBNull(1) ? "" : reader.GetString(1),
-                    Days = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                    FromTo = reader.IsDBNull(3) ? "" : reader.GetString(3)
+                    PTeamID = reader.IsDBNull(0) ? 0 : reader.GetInt64(0),
+                    CoachName = reader.IsDBNull(1) ? "" : reader.GetString(1),
+                    Level = reader.IsDBNull(2) ? "" : reader.GetString(2),
+                    Days = reader.IsDBNull(3) ? "" : reader.GetString(3),
+                    FromTo = reader.IsDBNull(4) ? "" : reader.GetString(4)
                 });
             }
 
             return result;
         }
+
         public async Task<IEnumerable<SwimmerPTeamDetailsDto>> GetSwimmerPTeamDetailsAsync(long pTeamId)
 
         {

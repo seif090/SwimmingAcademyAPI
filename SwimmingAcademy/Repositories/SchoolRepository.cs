@@ -20,34 +20,30 @@ namespace SwimmingAcademy.Repositories
         {
             using var conn = _context.Database.GetDbConnection();
             using var command = conn.CreateCommand();
+
             command.CommandText = "[Schools].[Create_School]";
             command.CommandType = CommandType.StoredProcedure;
 
             command.Parameters.AddRange(new[]
             {
-            new SqlParameter("@SchoolLevel", req.SchoolLevel),
-            new SqlParameter("@coachID", req.CoachID),
-            new SqlParameter("@FirstDay", req.FirstDay),
-            new SqlParameter("@SecondDay", req.SecondDay),
-            new SqlParameter("@StartTime", req.StartTime),
-            new SqlParameter("@EndTime", req.EndTime),
-            new SqlParameter("@Type", req.Type),
-            new SqlParameter("@site", req.Site),
-            new SqlParameter("@user", req.User)
-        });
+        new SqlParameter("@SchoolLevel", req.SchoolLevel),
+        new SqlParameter("@CoachID", req.CoachID),
+        new SqlParameter("@FirstDay", req.FirstDay),
+        new SqlParameter("@SecondDay", req.SecondDay),
+        new SqlParameter("@StartTime", req.StartTime),
+        new SqlParameter("@EndTime", req.EndTime),
+        new SqlParameter("@Type", req.Type),
+        new SqlParameter("@site", req.Site),
+        new SqlParameter("@user", req.User)
+    });
 
             if (conn.State != ConnectionState.Open)
                 await conn.OpenAsync();
 
-            // Use ExecuteReader to get SCOPE_IDENTITY
-            using var reader = await command.ExecuteReaderAsync();
-            if (await reader.ReadAsync())
-            {
-                return reader.GetInt64(0); // if SP is modified to return it
-            }
-
-            return 0; // if not returned, just indicate success
+            var result = await command.ExecuteScalarAsync(); // ✅ Get the returned ID
+            return result != null ? Convert.ToInt64(result) : 0; // ✅ Convert to long
         }
+
 
         public async Task<IEnumerable<SchoolSearchResultDto>> SearchSchoolsAsync(SchoolSearchRequest req)
         {

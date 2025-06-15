@@ -19,7 +19,7 @@ namespace SwimmingAcademy.Controllers
         public async Task<IActionResult> CreateSchool([FromBody] CreateSchoolRequest request)
         {
             var id = await _repo.CreateSchoolAsync(request);
-            return id > 0 ? Ok(new { SchoolID = id }) : BadRequest("Creation failed.");
+            return Ok(new { SchoolID = id });
         }
         [HttpPost("search")]
         public async Task<IActionResult> SearchSchools([FromBody] SchoolSearchRequest request)
