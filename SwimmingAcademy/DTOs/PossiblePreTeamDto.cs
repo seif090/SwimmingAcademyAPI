@@ -1,6 +1,6 @@
 ﻿namespace SwimmingAcademy.DTOs
 {
-    public class PossibleSchoolDto
+    public class PossiblePreTeamDto
     {
         public string CoachName { get; set; }
         public string Dayes { get; set; }

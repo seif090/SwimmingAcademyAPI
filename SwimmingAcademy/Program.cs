@@ -4,10 +4,8 @@ using Microsoft.IdentityModel.Tokens;
 using SwimmingAcademy.Data;
 using SwimmingAcademy.Helpers;
 using SwimmingAcademy.Repositories;
-using SwimmingAcademy.Repositories.Interfaces;
-using SwimmingAcademy.Services;
-using SwimmingAcademy.Services.Interfaces;
 using System.Text;
+using SwimmingAcademy.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,14 +13,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddDbContext<SwimmingAcademyContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 builder.Services.AddScoped<ISwimmerRepository, SwimmerRepository>();
-builder.Services.AddScoped<ISwimmerService, SwimmerService>();
-builder.Services.AddScoped<ICoachService, CoachService>();
-builder.Services.AddScoped<IPreTeamService, PreTeamService>();
-builder.Services.AddScoped<ISchoolService, SchoolService>();
+builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
+builder.Services.AddScoped<IPreTeamRepository, PreTeamRepository>();
+builder.Services.AddScoped<ICoachRepository, CoachRepository>();
 
 // AutoMapper
-builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 builder.Services.AddControllers();
 // Add JWT Authentication

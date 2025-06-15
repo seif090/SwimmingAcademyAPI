@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SwimmingAcademy.DTOs;
-using SwimmingAcademy.Services.Interfaces;
+using SwimmingAcademy.Interfaces;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -8,17 +8,17 @@ namespace SwimmingAcademy.Controllers
     [Route("api/[controller]")]
     public class CoachesController : ControllerBase
     {
-        private readonly ICoachService _coachService;
+        private readonly ICoachRepository _repo;
 
-        public CoachesController(ICoachService coachService)
+        public CoachesController(ICoachRepository repo)
         {
-            _coachService = coachService;
+            _repo = repo;
         }
 
-        [HttpPost("Free")]
-        public async Task<ActionResult<List<FreeCoachDto>>> GetFreeCoaches([FromBody] FreeCoachRequestDto request)
+        [HttpPost("free")]
+        public async Task<IActionResult> GetFreeCoaches([FromBody] FreeCoachFilterRequest request)
         {
-            var result = await _coachService.GetFreeCoachesAsync(request);
+            var result = await _repo.GetFreeCoachesAsync(request);
             return Ok(result);
         }
     }

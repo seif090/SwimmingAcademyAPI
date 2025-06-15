@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SwimmingAcademy.DTOs;
-using SwimmingAcademy.Services.Interfaces;
+using SwimmingAcademy.Interfaces;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -8,71 +8,61 @@ namespace SwimmingAcademy.Controllers
     [Route("api/[controller]")]
     public class PreTeamController : ControllerBase
     {
-        private readonly IPreTeamService _preTeamService;
+        private readonly IPreTeamRepository _repo;
 
-        public PreTeamController(IPreTeamService preTeamService)
+        public PreTeamController(IPreTeamRepository repo)
         {
-            _preTeamService = preTeamService;
+            _repo = repo;
         }
 
-        [HttpPost("Create")]
-        public async Task<IActionResult> CreatePreTeam([FromBody] CreatePreTeamDto dto)
+        [HttpPost("create")]
+        public async Task<IActionResult> CreatePTeam([FromBody] CreatePTeamRequest request)
         {
-            var pTeamId = await _preTeamService.CreatePreTeamAsync(dto);
-            return Ok(new { Message = "PreTeam created successfully", PTeamID = pTeamId });
+            var pTeamId = await _repo.CreatePreTeamAsync(request);
+            return Ok(new { PTeamID = pTeamId });
         }
-
-        [HttpPost("End")]
-        public async Task<IActionResult> EndPreTeam([FromBody] EndPreTeamDto dto)
+        [HttpPost("search")]
+        public async Task<IActionResult> SearchPTeam([FromBody] PTeamSearchRequest request)
         {
-            var success = await _preTeamService.EndPreTeamAsync(dto);
-            if (success)
-                return Ok(new { Message = "PreTeam ended successfully." });
-            else
-                return BadRequest(new { Message = "Failed to end PreTeam." });
-        }
+            // Optional: enforce one-filter-only logic here if needed
+            var filtersUsed = new object[] { request.PTeamID, request.FullName, request.Level }.Count(x => x != null);
+            if (filtersUsed != 1)
+                return BadRequest("Please provide exactly one filter: PTeamID, FullName, or Level.");
 
-        [HttpGet("Details/{preTeamId}")]
-        public async Task<ActionResult<PreTeamDetailsDto>> GetPreTeamDetails(long preTeamId)
-        {
-            var details = await _preTeamService.GetPreTeamDetailsAsync(preTeamId);
-            if (details == null)
-                return NotFound(new { Message = "PreTeam not found." });
-
-            return Ok(details);
-        }
-
-        [HttpGet("SwimmerDetails/{pTeamId}")]
-        public async Task<ActionResult<List<SwimmerDetailsTabDto>>> GetSwimmerDetails(long pTeamId)
-        {
-            var result = await _preTeamService.GetSwimmerDetailsAsync(pTeamId);
+            var result = await _repo.SearchPTeamAsync(request);
             return Ok(result);
         }
-
-
-        [HttpPost("SearchActions")]
-        public async Task<ActionResult<List<SearchActionResponseDto>>> SearchActions([FromBody] SearchActionRequestDto request)
+        [HttpGet("swimmer/{swimmerId}/details")]
+        public async Task<IActionResult> GetSwimmerPTeamDetails(long swimmerId)
         {
-            var result = await _preTeamService.SearchActionsAsync(request);
+            var result = await _repo.GetSwimmerPTeamDetailsAsync(swimmerId);
             return Ok(result);
         }
-
-
-        [HttpPost("Show")]
-        public async Task<ActionResult<List<ShowPreTeamResponseDto>>> ShowPreTeam([FromBody] ShowPreTeamRequestDto request)
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdatePTeam([FromBody] UpdatePTeamRequest request)
         {
-            var result = await _preTeamService.ShowPreTeamAsync(request);
-            return Ok(result);
+            var updated = await _repo.UpdatePTeamAsync(request);
+            return updated ? Ok("PreTeam updated successfully.") : BadRequest("Update failed.");
         }
-        [HttpPut("Update")]
-        public async Task<IActionResult> UpdatePreTeam([FromBody] UpdatePreTeamDto dto)
+        [HttpPost("end")]
+        public async Task<IActionResult> EndPTeam([FromBody] EndPTeamRequest request)
         {
-            var success = await _preTeamService.UpdatePreTeamAsync(dto);
-            if (success)
-                return Ok(new { Message = "PreTeam updated successfully." });
-
-            return BadRequest(new { Message = "Update failed. Please check PTeamID." });
+            var result = await _repo.EndPTeamAsync(request);
+            return result ? Ok("PreTeam ended successfully.") : BadRequest("Failed to end PreTeam.");
         }
+        [HttpGet("{pTeamId}/tab-details")]
+        public async Task<IActionResult> GetPTeamDetailsTab(long pTeamId)
+        {
+            var result = await _repo.GetPTeamDetailsTabAsync(pTeamId);
+            return result == null ? NotFound() : Ok(result);
+        }
+        [HttpPost("search-actions")]
+        public async Task<IActionResult> SearchActions([FromBody] PreTeamActionSearchRequest request)
+        {
+            var actions = await _repo.SearchActionsAsync(request);
+            return Ok(actions);
+        }
+
 
 
     }
