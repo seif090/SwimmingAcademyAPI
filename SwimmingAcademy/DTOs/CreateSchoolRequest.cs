@@ -2,6 +2,7 @@
 {
     public class CreateSchoolRequest
     {
+        public int SchoolID { get; set; }
         public short SchoolLevel { get; set; }
         public int CoachID { get; set; }
         public string FirstDay { get; set; }

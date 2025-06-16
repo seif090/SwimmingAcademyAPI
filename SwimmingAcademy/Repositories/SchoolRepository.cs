@@ -150,14 +150,15 @@ namespace SwimmingAcademy.Repositories
                     SecondDay = reader.IsDBNull(2) ? "" : reader.GetString(2),
                     StartTime = reader.IsDBNull(3) ? "" : TimeSpan.TryParse(reader.GetValue(3)?.ToString(), out var st) ? st.ToString(@"hh\:mm") : "",
                     EndTime = reader.IsDBNull(4) ? "" : TimeSpan.TryParse(reader.GetValue(4)?.ToString(), out var et) ? et.ToString(@"hh\:mm") : "",
-                    Capacity = reader.IsDBNull(5) ? 0 : reader.GetInt32(5),
-                    NumberOfSwimmers = reader.IsDBNull(6) ? 0 : reader.GetInt32(6),
+                    Capacity = reader.IsDBNull(5) ? 0 : reader.GetInt32(5), 
+                    NumberOfSwimmers = reader.IsDBNull(6) ? "0" : reader.GetString(6),
                     IsEnded = !reader.IsDBNull(7) && reader.GetBoolean(7)
                 };
             }
 
             return null;
         }
+
 
         public async Task<IEnumerable<SchoolSwimmerDetailsDto>> GetSchoolSwimmerDetailsAsync(long schoolID)
         {

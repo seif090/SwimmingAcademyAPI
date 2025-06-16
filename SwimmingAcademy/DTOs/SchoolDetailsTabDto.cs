@@ -8,7 +8,7 @@
         public string StartTime { get; set; }
         public string EndTime { get; set; }
         public int Capacity { get; set; }
-        public int NumberOfSwimmers { get; set; }
+        public string NumberOfSwimmers { get; set; }
         public bool IsEnded { get; set; }
     }
 }
