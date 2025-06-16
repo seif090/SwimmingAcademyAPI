@@ -41,7 +41,7 @@ namespace SwimmingAcademy.Repositories
                 await conn.OpenAsync();
 
             var result = await command.ExecuteScalarAsync(); // ✅ Get the returned ID
-            return result != null ? Convert.ToInt64(result) : 0; // ✅ Convert to long
+            return result is null ? 0 : Convert.ToInt64(result); // ✅ Convert to long
         }
 
 
