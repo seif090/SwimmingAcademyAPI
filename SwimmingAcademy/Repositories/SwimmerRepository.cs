@@ -35,10 +35,10 @@ namespace SwimmingAcademy.Repositories
         new SqlParameter("@club", req.Club),
         new SqlParameter("@primaryPhone", req.PrimaryPhone),
         new SqlParameter("@SecondaryPhone", (object?)req.SecondaryPhone ?? DBNull.Value),
-        new SqlParameter("@PrimaryJop", req.PrimaryJop),
-        new SqlParameter("@SecondaryJop", (object?)req.SecondaryJop ?? DBNull.Value),
+        new SqlParameter("@PrimaryJop", req.PrimaryJob),
+        new SqlParameter("@SecondaryJop", (object?)req.SecondaryJob ?? DBNull.Value),
         new SqlParameter("@Email", req.Email),
-        new SqlParameter("@Adress", req.Adress)
+        new SqlParameter("@Adress", req.Address)
     });
 
             if (conn.State != ConnectionState.Open)
@@ -179,7 +179,7 @@ namespace SwimmingAcademy.Repositories
             {
                 return new InvoiceResultDto
                 {
-                    InvItem = reader.IsDBNull(0) ? "" : reader.GetValue(0).ToString(),
+                    InvItem = reader.IsDBNull(0) ? "" : reader.GetValue(0)?.ToString() ?? "",
                     Value = reader.IsDBNull(1) ? 0 : Convert.ToDecimal(reader.GetValue(1))
                 };
             }
@@ -215,7 +215,7 @@ namespace SwimmingAcademy.Repositories
             {
                 result = new InvoiceResultDto
                 {
-                    InvItem = reader.IsDBNull(0) ? "" : reader.GetValue(0).ToString(),
+                    InvItem = reader.IsDBNull(0) ? "" : reader.GetValue(0)?.ToString() ?? "",
                     Value = reader.IsDBNull(1) ? 0 : Convert.ToDecimal(reader.GetValue(1))
                 };
             }
