@@ -20,30 +20,43 @@ namespace SwimmingAcademy.Repositories
         {
             var result = new List<FreeCoachDto>();
 
-            using var conn = _context.Database.GetDbConnection();
-            using var command = conn.CreateCommand();
-            command.CommandText = "[dbo].[FreeCoaches]";
-            command.CommandType = CommandType.StoredProcedure;
-
-            command.Parameters.Add(new SqlParameter("@Type", req.Type));
-            command.Parameters.Add(new SqlParameter("@startTime", req.StartTime));
-            command.Parameters.Add(new SqlParameter("@FirstDay", req.FirstDay));
-            command.Parameters.Add(new SqlParameter("@site", req.Site));
-
-            if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
-
-            using var reader = await command.ExecuteReaderAsync();
-            while (await reader.ReadAsync())
+            try
             {
-                result.Add(new FreeCoachDto
+                if (req == null)
+                    throw new ArgumentNullException(nameof(req));
+
+                using var conn = _context.Database.GetDbConnection();
+                using var command = conn.CreateCommand();
+                command.CommandText = "[dbo].[FreeCoaches]";
+                command.CommandType = CommandType.StoredProcedure;
+
+                // Fix for CS0019: Explicitly cast 'short' to 'object' to avoid the error
+                command.Parameters.Add(new SqlParameter("@Type", (object)req.Type ?? DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@startTime", req.StartTime));
+                command.Parameters.Add(new SqlParameter("@FirstDay", req.FirstDay));
+                command.Parameters.Add(new SqlParameter("@site", (object)req.Site ?? DBNull.Value));
+
+                if (conn.State != ConnectionState.Open)
+                    await conn.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+                while (await reader.ReadAsync())
                 {
-                    Name = reader.GetString(0)
-                });
+                    result.Add(new FreeCoachDto
+                    {
+                        Name = !reader.IsDBNull(0) ? reader.GetString(0) : "Unknown"
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                // Optional: log exception here
+                throw new Exception("Error fetching free coaches", ex);
             }
 
             return result;
         }
+
     }
 
 }

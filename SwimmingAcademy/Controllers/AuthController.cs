@@ -23,9 +23,24 @@ namespace SwimmingAcademy.Controllers
                 return BadRequest("Password is required.");
             }
 
-            var result = await _repo.LoginAsync(request.UserId, request.Password);
-            return Ok(result);
+            try
+            {
+                var result = await _repo.LoginAsync(request.UserId, request.Password);
+
+                if (result == null)
+                {
+                    return Unauthorized("Invalid credentials.");
+                }
+
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception using ILogger (recommended) or return error
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
     }
 
     public class LoginRequest

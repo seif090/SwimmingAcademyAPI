@@ -20,45 +20,51 @@ namespace SwimmingAcademy.Repositories
         {
             var result = new LoginResultDTO();
 
-            using var conn = _context.Database.GetDbConnection();
-            using var command = conn.CreateCommand();
-            command.CommandText = "dbo.UserLogIn";
-            command.CommandType = CommandType.StoredProcedure;
-
-            command.Parameters.Add(new SqlParameter("@UserID", userId));
-            command.Parameters.Add(new SqlParameter("@Password", password));
-
-            if (conn.State != ConnectionState.Open)
-                await conn.OpenAsync();
-
-            using var reader = await command.ExecuteReaderAsync();
-
-            if (reader.HasRows)
+            try
             {
-                // First result: message
-                await reader.ReadAsync();
-                result.Message = reader.GetString(0);
+                using var conn = _context.Database.GetDbConnection();
+                using var command = conn.CreateCommand();
+                command.CommandText = "dbo.UserLogIn";
+                command.CommandType = CommandType.StoredProcedure;
 
-                // Second result: sites
-                if (await reader.NextResultAsync())
+                command.Parameters.Add(new SqlParameter("@UserID", userId));
+                command.Parameters.Add(new SqlParameter("@Password", password));
+
+                if (conn.State != ConnectionState.Open)
+                    await conn.OpenAsync();
+
+                using var reader = await command.ExecuteReaderAsync();
+
+                if (reader.HasRows && await reader.ReadAsync())
                 {
-                    while (await reader.ReadAsync())
-                        result.Sites.Add(reader.GetString(0));
+                    result.Message = !reader.IsDBNull(0) ? reader.GetString(0) : string.Empty;
+
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                            result.Sites.Add(reader.GetString(0));
+                    }
+
+                    if (await reader.NextResultAsync())
+                    {
+                        while (await reader.ReadAsync())
+                            result.Modules.Add(reader.GetString(0));
+                    }
                 }
-
-                // Third result: modules
-                if (await reader.NextResultAsync())
+                else
                 {
-                    while (await reader.ReadAsync())
-                        result.Modules.Add(reader.GetString(0));
+                    result.Message = "Incorrect UserName / Password";
                 }
             }
-            else
+            catch (Exception ex)
             {
-                result.Message = "Incorrect UserName / Password";
+                // Optional: log or throw a known exception to the controller
+                result.Message = $"Internal server error: {ex.Message}";
+                // Optionally rethrow or return null to controller for 500
             }
 
             return result;
         }
+
     }
 }

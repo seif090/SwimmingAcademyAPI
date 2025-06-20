@@ -9,76 +9,156 @@ namespace SwimmingAcademy.Controllers
     public class SchoolsController : ControllerBase
     {
         private readonly ISchoolRepository _repo;
+        // private readonly ILogger<SchoolsController> _logger;
 
-        public SchoolsController(ISchoolRepository repo)
+        public SchoolsController(ISchoolRepository repo /*, ILogger<SchoolsController> logger*/)
         {
             _repo = repo;
+            // _logger = logger;
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateSchool([FromBody] CreateSchoolRequest request)
         {
-            var id = await _repo.CreateSchoolAsync(request);
-            return Ok(new { SchoolID = id });
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var id = await _repo.CreateSchoolAsync(request);
+                return Ok(new { SchoolID = id });
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in CreateSchool");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
         [HttpPost("search")]
         public async Task<IActionResult> SearchSchools([FromBody] SchoolSearchRequest request)
         {
-            // Use null-coalescing operator to ensure no null values are added to the array
-            var filtersUsed = new object[]
-            {
-                request.SchoolID ?? 0,
-                request.FullName ?? string.Empty,
-                request.Level ?? 0,
-                request.Type ?? 0
-            }.Count(x => x != null);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            int filtersUsed = 0;
+            if (request.SchoolID != null) filtersUsed++;
+            if (!string.IsNullOrWhiteSpace(request.FullName)) filtersUsed++;
+            if (request.Level != null) filtersUsed++;
+            if (request.Type != null) filtersUsed++;
 
             if (filtersUsed != 1)
                 return BadRequest("Please provide exactly one filter: SchoolID, FullName, Level, or Type.");
 
-            var result = await _repo.SearchSchoolsAsync(request);
-            return Ok(result);
+            try
+            {
+                var result = await _repo.SearchSchoolsAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in SearchSchools");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPut("update")]
         public async Task<IActionResult> UpdateSchool([FromBody] UpdateSchoolRequest request)
         {
-            var updated = await _repo.UpdateSchoolAsync(request);
-            return updated ? Ok("School updated successfully.") : BadRequest("Update failed.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var updated = await _repo.UpdateSchoolAsync(request);
+                return updated ? Ok("School updated successfully.") : BadRequest("Update failed.");
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in UpdateSchool");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost("end")]
         public async Task<IActionResult> EndSchool([FromBody] EndSchoolRequest request)
         {
-            var result = await _repo.EndSchoolAsync(request);
-            return result ? Ok("School ended successfully.") : BadRequest("Failed to end school.");
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _repo.EndSchoolAsync(request);
+                return result ? Ok("School ended successfully.") : BadRequest("Failed to end school.");
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in EndSchool");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
         [HttpGet("{schoolID}/details-tab")]
         public async Task<IActionResult> GetSchoolDetailsTab(long schoolID)
         {
-            var result = await _repo.GetSchoolDetailsTabAsync(schoolID);
-            return result == null ? NotFound() : Ok(result);
+            try
+            {
+                var result = await _repo.GetSchoolDetailsTabAsync(schoolID);
+                return result == null ? NotFound("School not found.") : Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in GetSchoolDetailsTab");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
         [HttpGet("{schoolID}/swimmers")]
         public async Task<IActionResult> GetSchoolSwimmerDetails(long schoolID)
         {
-            var result = await _repo.GetSchoolSwimmerDetailsAsync(schoolID);
-            return Ok(result);
+            try
+            {
+                var result = await _repo.GetSchoolSwimmerDetailsAsync(schoolID);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in GetSchoolSwimmerDetails");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
         [HttpPost("search-actions")]
         public async Task<IActionResult> SearchSchoolActions([FromBody] SchoolActionSearchRequest request)
         {
-            var actions = await _repo.SearchSchoolActionsAsync(request);
-            return Ok(actions);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var actions = await _repo.SearchSchoolActionsAsync(request);
+                return Ok(actions);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in SearchSchoolActions");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
         [HttpGet("{swimmerID}/possible-school/{type}")]
         public async Task<IActionResult> GetPossibleSchool(long swimmerID, short type)
         {
-            var result = await _repo.GetPossibleSchoolOptionsAsync(swimmerID, type);
-            return Ok(result);
+            try
+            {
+                var result = await _repo.GetPossibleSchoolOptionsAsync(swimmerID, type);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                // _logger.LogError(ex, "Error in GetPossibleSchool");
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
-
-
     }
 }
