@@ -1,8 +1,13 @@
 ﻿namespace SwimmingAcademy.DTOs
 {
+    /// <summary>
+    /// Represents an action performed in the system.
+    /// </summary>
     public class ActionNameDto
     {
-        public string? ActionName { get; set; }
-
+        /// <summary>
+        /// The name of the action.
+        /// </summary>
+        public string ActionName { get; set; } = string.Empty;
     }
 }
