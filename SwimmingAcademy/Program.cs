@@ -1,11 +1,12 @@
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using SwimmingAcademy.Data;
 using SwimmingAcademy.Helpers;
+using SwimmingAcademy.Interfaces;
 using SwimmingAcademy.Repositories;
 using System.Text;
-using SwimmingAcademy.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -17,6 +18,8 @@ builder.Services.AddCors(options =>
                           .AllowAnyMethod()
                           .AllowAnyHeader());
 });
+
+
 
 builder.Services.AddDbContext<SwimmingAcademyContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
