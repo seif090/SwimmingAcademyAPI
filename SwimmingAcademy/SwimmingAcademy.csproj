@@ -7,6 +7,8 @@
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 	  <UserSecretsId>e7c29f5c-4721-4191-8f46-a588230c7e21</UserSecretsId>
 	  <DockerDefaultTargetOS>Windows</DockerDefaultTargetOS>
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,12 +18,12 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.0" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; countnetfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <IncludeAssets>runtime; build; native; countnetfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1-Preview.1" />
