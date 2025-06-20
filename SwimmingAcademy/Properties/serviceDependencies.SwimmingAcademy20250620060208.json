@@ -9,11 +9,10 @@
       "type": "identityapp"
     },
     "mssql1": {
-      "serviceConnectorResourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('serviceConnectorResourceGroupName')]/providers/Microsoft.Web/sites/SwimmingAcademy20250620060208/providers/Microsoft.ServiceLinker/linkers/ConnectionStringsDefaultConnection1_A673C65960",
       "secretStore": "AzureAppSettings",
-      "resourceId": "/subscriptions/[parameters('subscriptionId')]/resourceGroups/[parameters('resourceGroupName')]/providers/Microsoft.Sql/servers/swimmingacademydbserver/databases/SwimmingAcademy_db",
-      "type": "mssql.azure",
-      "connectionId": "ConnectionStrings:DefaultConnection1"
+      "type": "mssql.onprem",
+      "connectionId": "ConnectionStrings:DefaultConnection1",
+      "dynamicId": null
     }
   }
 }
