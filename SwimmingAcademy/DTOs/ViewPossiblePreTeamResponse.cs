@@ -2,7 +2,7 @@
 {
     public class ViewPossiblePreTeamResponse
     {
-        public List<PossiblePreTeamDto> PreTeams { get; set; }
-        public List<InvoiceSuggestionDto> Invoices { get; set; }
+        public List<PossiblePreTeamDto> PreTeams { get; set; } = new List<PossiblePreTeamDto>();
+        public List<InvoiceSuggestionDto> Invoices { get; set; } = new List<InvoiceSuggestionDto>();
     }
 }

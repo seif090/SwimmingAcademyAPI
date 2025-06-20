@@ -2,7 +2,7 @@
 {
     public class ActionNameDto
     {
-        public string ActionName { get; set; }
+        public string? ActionName { get; set; }
 
     }
 }

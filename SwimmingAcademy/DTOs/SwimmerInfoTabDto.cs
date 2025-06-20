@@ -2,16 +2,16 @@
 {
     public class SwimmerInfoTabDto
     {
-        public string FullName { get; set; }
-        public DateTime BirthDate { get; set; }
-        public string Site { get; set; }
-        public string CurrentLevel { get; set; }
-        public string StartLevel { get; set; }
-        public DateTime CreatedAtDate { get; set; }
-        public string PrimaryJop { get; set; }
-        public string SecondaryJop { get; set; }
-        public string PrimaryPhone { get; set; }
-        public string SecondaryPhone { get; set; }
-        public string Club { get; set; }
+        public required string FullName { get; set; }
+        public required DateTime BirthDate { get; set; }
+        public required string Site { get; set; }
+        public required string CurrentLevel { get; set; }
+        public required string StartLevel { get; set; }
+        public required DateTime CreatedAtDate { get; set; }
+        public required string PrimaryJop { get; set; }
+        public required string SecondaryJop { get; set; }
+        public required string PrimaryPhone { get; set; }
+        public required string SecondaryPhone { get; set; }
+        public required string Club { get; set; }
     }
 }

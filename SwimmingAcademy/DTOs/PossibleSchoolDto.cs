@@ -2,8 +2,8 @@
 {
     public class PossibleSchoolDto
     {
-        public string CoachName { get; set; }
-        public string Dayes { get; set; }
-        public string FromTo { get; set; }
+        public string CoachName { get; set; } = string.Empty; // Initialize with a default value to avoid nullability issues
+        public string Dayes { get; set; } = string.Empty; // Initialize with a default value to avoid nullability issues
+        public string FromTo { get; set; } = string.Empty; // Initialize with a default value to avoid nullability issues
     }
 }

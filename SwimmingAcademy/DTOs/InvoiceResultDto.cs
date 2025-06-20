@@ -2,7 +2,7 @@
 {
     public class InvoiceResultDto
     {
-        public string InvItem { get; set; }
+        public string? InvItem { get; set; }
         public decimal Value { get; set; }
     }
 }

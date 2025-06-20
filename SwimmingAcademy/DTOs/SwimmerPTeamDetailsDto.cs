@@ -2,9 +2,9 @@
 {
     public class SwimmerPTeamDetailsDto
     {
-        public string FullName { get; set; }
-        public string Attendance { get; set; }
-        public string SwimmerLevel { get; set; }
-        public string LastStar { get; set; }
+        public required string FullName { get; set; }
+        public required string Attendance { get; set; }
+        public required string SwimmerLevel { get; set; }
+        public required string LastStar { get; set; }
     }
 }

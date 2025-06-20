@@ -2,11 +2,11 @@
 {
     public class SwimmerSearchResultDto
     {
-        public string FullName { get; set; }
-        public string Year { get; set; }
-        public string CurrentLevel { get; set; }
-        public string CoachName { get; set; }
-        public string Site { get; set; }
-        public string Club { get; set; }
+        public required string FullName { get; set; }
+        public required string Year { get; set; }
+        public required string CurrentLevel { get; set; }
+        public required string CoachName { get; set; }
+        public required string Site { get; set; }
+        public required string Club { get; set; }
     }
 }

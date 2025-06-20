@@ -2,12 +2,12 @@
 {
     public class SwimmerTechnicalSchoolDto
     {
-        public string CoachName { get; set; }
-        public string FirstDay { get; set; }
-        public string SecondDay { get; set; }
-        public TimeSpan StartTime { get; set; }
-        public TimeSpan EndTime { get; set; }
-        public string SwimmerLevel { get; set; }
-        public string Attendence { get; set; }
+        public required string CoachName { get; set; }
+        public required string FirstDay { get; set; }
+        public required string SecondDay { get; set; }
+        public required TimeSpan StartTime { get; set; }
+        public required TimeSpan EndTime { get; set; }
+        public required string SwimmerLevel { get; set; }
+        public required string Attendence { get; set; }
     }
 }

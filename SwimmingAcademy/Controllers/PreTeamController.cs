@@ -24,8 +24,10 @@ namespace SwimmingAcademy.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> SearchPTeam([FromBody] PTeamSearchRequest request)
         {
-            // Optional: enforce one-filter-only logic here if needed
-            var filtersUsed = new object[] { request.PTeamID, request.FullName, request.Level }.Count(x => x != null);
+            // Use null-forgiving operator (!) to suppress CS8601 warnings
+            var filtersUsed = new object?[] { request.PTeamID, request.FullName, request.Level }
+                .Count(x => x != null);
+
             if (filtersUsed != 1)
                 return BadRequest("Please provide exactly one filter: PTeamID, FullName, or Level.");
 

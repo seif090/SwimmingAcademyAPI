@@ -274,7 +274,7 @@ namespace SwimmingAcademy.Repositories
                 result.Add(new SwimmerSearchResultDto
                 {
                     FullName = reader.IsDBNull(0) ? "" : reader.GetString(0),
-                    Year = reader.IsDBNull(1) ? "" : reader.GetValue(1).ToString(),
+                    Year = reader.IsDBNull(1) ? "" : reader.GetValue(1)?.ToString() ?? "",
                     CurrentLevel = reader.IsDBNull(2) ? "" : reader.GetString(2),
                     CoachName = reader.IsDBNull(3) ? "" : reader.GetString(3),
                     Site = reader.IsDBNull(4) ? "" : reader.GetString(4),
@@ -307,8 +307,8 @@ namespace SwimmingAcademy.Repositories
                         CoachName = reader.IsDBNull(0) ? "" : reader.GetString(0),
                         FirstDay = reader.IsDBNull(1) ? "" : reader.GetString(1),
                         SecondDay = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                        StartTime = reader.IsDBNull(3) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(3).ToString()),
-                        EndTime = reader.IsDBNull(4) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(4).ToString()),
+                        StartTime = reader.IsDBNull(3) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(3)?.ToString() ?? ""),
+                        EndTime = reader.IsDBNull(4) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(4)?.ToString() ?? ""),
                         SwimmerLevel = reader.IsDBNull(5) ? "" : reader.GetString(5),
                         Attendence = reader.IsDBNull(6) ? "" : reader.GetString(6)
                     };
@@ -321,8 +321,8 @@ namespace SwimmingAcademy.Repositories
                         FirstDay = reader.IsDBNull(1) ? "" : reader.GetString(1),
                         SecondDay = reader.IsDBNull(2) ? "" : reader.GetString(2),
                         ThirdDay = reader.IsDBNull(3) ? "" : reader.GetString(3),
-                        StartTime = reader.IsDBNull(4) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(4).ToString()),
-                        EndTime = reader.IsDBNull(5) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(5).ToString()),
+                        StartTime = reader.IsDBNull(4) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(4)?.ToString() ?? ""),
+                        EndTime = reader.IsDBNull(5) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(5).ToString() ?? ""),
                         SwimmerLevel = reader.IsDBNull(6) ? "" : reader.GetString(6),
                         Attendence = reader.IsDBNull(7) ? "" : reader.GetString(7),
                         LastStar = reader.IsDBNull(8) ? "" : reader.GetString(8)

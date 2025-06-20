@@ -24,13 +24,13 @@ public class Technical
     public DateOnly AddedAt { get; set; }
     public int? UpdatedBy { get; set; }
     public DateOnly? UpdatedAt { get; set; }
-    public DateOnly? ExpiryDate { get; set; } // Added property to fix CS1061  
-    public virtual user AddedbyNavigation { get; set; }
-    public virtual AppCode CurrentLevelNavigation { get; set; }
+    public DateOnly? ExpiryDate { get; set; }
+    public virtual user AddedbyNavigation { get; set; } = null!; // Fix: Initialize with null-forgiving operator
+    public virtual AppCode CurrentLevelNavigation { get; set; } = null!; // Fix: Initialize with null-forgiving operator
     public virtual AppCode? FirstSPNavigation { get; set; }
     public virtual AppCode? LastStarNavigation { get; set; }
     public virtual AppCode? SecondSPNavigation { get; set; }
-    public virtual AppCode SiteNavigation { get; set; }
-    public virtual Info2 Swimmer { get; set; }
+    public virtual AppCode SiteNavigation { get; set; } = null!; // Fix: Initialize with null-forgiving operator
+    public virtual Info2 Swimmer { get; set; } = null!; // Fix: Initialize with null-forgiving operator
     public virtual user? UpdatedByNavigation { get; set; }
 }

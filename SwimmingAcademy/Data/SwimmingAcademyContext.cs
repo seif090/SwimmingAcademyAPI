@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Microsoft.Extensions.Configuration;
+using System;
+using Microsoft.Data.SqlClient;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using SwimmingAcademy.Models;
@@ -59,9 +61,20 @@ public partial class SwimmingAcademyContext : DbContext
 
     public virtual DbSet<user> users { get; set; }
 
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=.;Database=SwimminAcadmy;Trusted_Connection=True;TrustServerCertificate=True;");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            var configuration = new ConfigurationBuilder()
+            .SetBasePath(AppContext.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
+
+            var connectionString = configuration.GetConnectionString("DefaultConnection");
+            optionsBuilder.UseSqlServer(connectionString);
+        }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -261,7 +274,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Info__createdAtS__367C1819");
 
-            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.InfocreatedByNavigations)
+            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.InfoCreatedByNavigations)
                 .HasForeignKey(d => d.createdBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Info__createdBy__37703C52");
@@ -275,7 +288,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .HasForeignKey(d => d.updatedAtSite)
                 .HasConstraintName("FK__Info__updatedAtS__3864608B");
 
-            entity.HasOne(d => d.updatedByNavigation).WithMany(p => p.InfoupdatedByNavigations)
+            entity.HasOne(d => d.updatedByNavigation).WithMany(p => p.InfoUpdatedByNavigations)
                 .HasForeignKey(d => d.updatedBy)
                 .HasConstraintName("FK__Info__updatedBy__395884C4");
         });
@@ -416,7 +429,7 @@ public partial class SwimmingAcademyContext : DbContext
 
             entity.Property(e => e.SwimmerID).ValueGeneratedNever();
 
-            entity.HasOne(d => d.AddedbyNavigation).WithMany(p => p.TechnicalAddedbyNavigations)
+            entity.HasOne(d => d.AddedbyNavigation).WithMany(p => p.TechnicalAddedByNavigations)
                 .HasForeignKey(d => d.Addedby)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__Technical__Added__093F5D4E");
@@ -560,7 +573,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__info__createdAtS__1F98B2C1");
 
-            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.info1createdByNavigations)
+            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.Info1CreatedByNavigations)
                 .HasForeignKey(d => d.createdBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__info__createdBy__208CD6FA");
@@ -579,7 +592,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .HasForeignKey(d => d.updatedAtSite)
                 .HasConstraintName("FK__info__updatedAtS__2180FB33");
 
-            entity.HasOne(d => d.updatedByNavigation).WithMany(p => p.info1updatedByNavigations)
+            entity.HasOne(d => d.updatedByNavigation).WithMany(p => p.Info1UpdatedByNavigations)
                 .HasForeignKey(d => d.updatedBy)
                 .HasConstraintName("FK__info__updatedBy__22751F6C");
         });
@@ -609,7 +622,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .HasForeignKey(d => d.SwimmerID)
                 .HasConstraintName("FK__log__SwimmerID__69C6B1F5");
 
-            entity.HasOne(d => d.createdbyNavigation).WithMany(p => p.logs)
+            entity.HasOne(d => d.createdbyNavigation).WithMany(p => p.Logs)
                 .HasForeignKey(d => d.createdby)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__log__createdby__67DE6983");
@@ -626,7 +639,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__log__ActionID__73852659");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.log1s)
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Log1s)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__log__CreatedBy__76619304");
@@ -657,7 +670,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__log__ActionID__038683F8");
 
-            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.log2s)
+            entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Log2s)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__log__CreatedBy__056ECC6A");
@@ -685,7 +698,7 @@ public partial class SwimmingAcademyContext : DbContext
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__trans__action__4F12BBB9");
 
-            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.trans)
+            entity.HasOne(d => d.createdByNavigation).WithMany(p => p.Trans)
                 .HasForeignKey(d => d.createdBy)
                 .HasConstraintName("FK__trans__createdBy__5006DFF2");
 
@@ -712,10 +725,10 @@ public partial class SwimmingAcademyContext : DbContext
 
         modelBuilder.Entity<user>(entity =>
         {
-            entity.HasKey(e => e.userid).HasName("PK__users__CBA1B2575DDDE890");
+            entity.HasKey(e => e.UserId).HasName("PK__users__CBA1B2575DDDE890");
 
             entity.Property(e => e.Password).HasMaxLength(20);
-            entity.Property(e => e.fullname).HasMaxLength(120);
+            entity.Property(e => e.FullName).HasMaxLength(120);
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.userCreatedByNavigations)
                 .HasForeignKey(d => d.CreatedBy)

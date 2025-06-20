@@ -17,14 +17,21 @@ namespace SwimmingAcademy.Helpers
         public string GenerateToken(int userId, string userType)
         {
             var jwtSettings = _configuration.GetSection("Jwt");
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["Key"]));
+            var keyString = jwtSettings["Key"];
+
+            if (string.IsNullOrEmpty(keyString))
+            {
+                throw new InvalidOperationException("JWT Key is not configured.");
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
 
             var claims = new[]
             {
-            new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-            new Claim(ClaimTypes.Role, userType),
-            new Claim("UserId", userId.ToString())
-        };
+                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
+                    new Claim(ClaimTypes.Role, userType),
+                    new Claim("UserId", userId.ToString())
+                };
 
             var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 

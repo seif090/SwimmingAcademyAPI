@@ -2,9 +2,9 @@
 {
     public class SwimmerLogDto
     {
-        public string ActionName { get; set; }
-        public string PerformedBy { get; set; }
-        public DateTime CreatedAtDate { get; set; }
-        public string Site { get; set; }
+        public required string ActionName { get; set; }
+        public required string PerformedBy { get; set; }
+        public required DateTime CreatedAtDate { get; set; }
+        public required string Site { get; set; }
     }
 }

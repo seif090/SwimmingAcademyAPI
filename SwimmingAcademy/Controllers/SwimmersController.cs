@@ -74,8 +74,14 @@ namespace SwimmingAcademy.Controllers
         [HttpPost("search")]
         public async Task<IActionResult> SearchSwimmers([FromBody] SwimmerSearchRequest request)
         {
-            var filtersUsed = new object[] { request.SwimmerID, request.FullName, request.Year, request.Level }
-                .Count(x => x != null);
+            // Ensure null values are replaced with default values to avoid CS8601
+            var filtersUsed = new object[]
+            {
+                request.SwimmerID ?? 0,
+                request.FullName ?? string.Empty,
+                request.Year ?? string.Empty,
+                request.Level ?? (short)0
+            }.Count(x => x != null);
 
             if (filtersUsed != 1)
                 return BadRequest("Please provide exactly one filter: SwimmerID, FullName, Year, or Level.");

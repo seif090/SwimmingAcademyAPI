@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SwimmingAcademy.Interfaces;
+using System.ComponentModel.DataAnnotations;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -17,6 +18,11 @@ namespace SwimmingAcademy.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrEmpty(request.Password))
+            {
+                return BadRequest("Password is required.");
+            }
+
             var result = await _repo.LoginAsync(request.UserId, request.Password);
             return Ok(result);
         }
@@ -25,7 +31,8 @@ namespace SwimmingAcademy.Controllers
     public class LoginRequest
     {
         public int UserId { get; set; }
-        public string Password { get; set; }
+        [Required]
+        public string? Password { get; set; }
     }
 }
 
