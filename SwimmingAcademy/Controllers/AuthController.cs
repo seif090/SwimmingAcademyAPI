@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
 using System.ComponentModel.DataAnnotations;
 
@@ -9,38 +11,36 @@ namespace SwimmingAcademy.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _repo;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(IAuthRepository repo)
+        public AuthController(IAuthRepository repo, ILogger<AuthController> logger)
         {
             _repo = repo;
+            _logger = logger;
         }
 
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        public async Task<ActionResult<LoginResultDTO>> Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrEmpty(request.Password))
-            {
-                return BadRequest("Password is required.");
-            }
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
 
             try
             {
-                var result = await _repo.LoginAsync(request.UserId, request.Password);
+                var result = await _repo.LoginAsync(request.UserId, request.Password!);
 
                 if (result == null)
-                {
                     return Unauthorized("Invalid credentials.");
-                }
 
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // Log the exception using ILogger (recommended) or return error
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error during login for user {UserId}", request.UserId);
+                // Generic error for production
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
-
     }
 
     public class LoginRequest

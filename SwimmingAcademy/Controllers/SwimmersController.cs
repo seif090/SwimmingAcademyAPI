@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
 
@@ -9,12 +10,12 @@ namespace SwimmingAcademy.Controllers
     public class SwimmersController : ControllerBase
     {
         private readonly ISwimmerRepository _repo;
-        // private readonly ILogger<SwimmersController> _logger;
+        private readonly ILogger<SwimmersController> _logger;
 
-        public SwimmersController(ISwimmerRepository repo /*, ILogger<SwimmersController> logger*/)
+        public SwimmersController(ISwimmerRepository repo, ILogger<SwimmersController> logger)
         {
             _repo = repo;
-            // _logger = logger;
+            _logger = logger;
         }
 
         [HttpPost("add")]
@@ -29,8 +30,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "AddSwimmer failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "AddSwimmer failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -44,8 +45,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "GetSwimmerInfoTab failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "GetSwimmerInfoTab failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -59,8 +60,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "GetSwimmerLogs failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "GetSwimmerLogs failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -74,8 +75,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "ChangeSite failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "ChangeSite failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -89,8 +90,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "DeleteSwimmer failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "DeleteSwimmer failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -104,8 +105,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "SavePreTeamTransaction failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "SavePreTeamTransaction failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -121,8 +122,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "SaveSchoolTransaction failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "SaveSchoolTransaction failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -136,8 +137,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "SearchSwimmerActions failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "SearchSwimmerActions failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -146,7 +147,6 @@ namespace SwimmingAcademy.Controllers
         {
             try
             {
-                // ✅ Better filter logic: count actual non-null and non-default filters
                 int filtersUsed = 0;
                 if (request.SwimmerID.HasValue) filtersUsed++;
                 if (!string.IsNullOrWhiteSpace(request.FullName)) filtersUsed++;
@@ -161,8 +161,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "SearchSwimmers failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "SearchSwimmers failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -176,8 +176,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "GetSwimmerTechnicalTab failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "GetSwimmerTechnicalTab failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -191,8 +191,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "UpdateSwimmer failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "UpdateSwimmer failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -206,8 +206,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "UpdateSwimmerLevel failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "UpdateSwimmerLevel failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -221,10 +221,9 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "GetPossiblePreTeam failed");
-                return StatusCode(500, "Internal server error.");
+                _logger.LogError(ex, "GetPossiblePreTeam failed");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
     }
 }
-                // _logger.LogErro_

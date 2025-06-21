@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
 
@@ -8,30 +9,33 @@ namespace SwimmingAcademy.Controllers
     [Route("api/[controller]")]
     public class PreTeamController : ControllerBase
     {
-        private readonly IPreTeamRepository _repo;
-        // private readonly ILogger<PreTeamController> _logger;
+        private readonly IPreTeamRepository _preTeamRepository;
+        private readonly ILogger<PreTeamController> _logger;
 
-        public PreTeamController(IPreTeamRepository repo /*, ILogger<PreTeamController> logger*/)
+        public PreTeamController(IPreTeamRepository preTeamRepository, ILogger<PreTeamController> logger)
         {
-            _repo = repo;
-            // _logger = logger;
+            _preTeamRepository = preTeamRepository;
+            _logger = logger;
         }
 
+        
+       
+
         [HttpPost("create")]
-        public async Task<IActionResult> CreatePTeam([FromBody] CreatePTeamRequest request)
+        public async Task<ActionResult<long>> Create([FromBody] CreatePTeamRequest dto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var pTeamId = await _repo.CreatePreTeamAsync(request);
-                return Ok(new { PTeamID = pTeamId });
+                var id = await _preTeamRepository.CreatePreTeamAsync(dto);
+                return Ok(id);
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in CreatePTeam");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error creating preteam");
+                return StatusCode(500, "An error occurred while creating the preteam.");
             }
         }
 
@@ -49,12 +53,12 @@ namespace SwimmingAcademy.Controllers
 
             try
             {
-                var result = await _repo.SearchPTeamAsync(request);
+                var result = await _preTeamRepository.SearchPTeamAsync(request);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in SearchPTeam");
+                _logger.LogError(ex, "Error in SearchPTeam");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -64,12 +68,12 @@ namespace SwimmingAcademy.Controllers
         {
             try
             {
-                var result = await _repo.GetSwimmerPTeamDetailsAsync(swimmerId);
+                var result = await _preTeamRepository.GetSwimmerPTeamDetailsAsync(swimmerId);
                 return Ok(result);
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in GetSwimmerPTeamDetails for swimmerId {swimmerId}", swimmerId);
+                _logger.LogError(ex, "Error in GetSwimmerPTeamDetails for swimmerId {swimmerId}", swimmerId);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -82,12 +86,12 @@ namespace SwimmingAcademy.Controllers
 
             try
             {
-                var updated = await _repo.UpdatePTeamAsync(request);
+                var updated = await _preTeamRepository.UpdatePTeamAsync(request);
                 return updated ? Ok("PreTeam updated successfully.") : BadRequest("Update failed.");
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in UpdatePTeam");
+                _logger.LogError(ex, "Error in UpdatePTeam");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -100,12 +104,12 @@ namespace SwimmingAcademy.Controllers
 
             try
             {
-                var result = await _repo.EndPTeamAsync(request);
+                var result = await _preTeamRepository.EndPTeamAsync(request);
                 return result ? Ok("PreTeam ended successfully.") : BadRequest("Failed to end PreTeam.");
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in EndPTeam");
+                _logger.LogError(ex, "Error in EndPTeam");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -115,12 +119,12 @@ namespace SwimmingAcademy.Controllers
         {
             try
             {
-                var result = await _repo.GetPTeamDetailsTabAsync(pTeamId);
+                var result = await _preTeamRepository.GetPTeamDetailsTabAsync(pTeamId);
                 return result == null ? NotFound("Details not found.") : Ok(result);
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in GetPTeamDetailsTab for PTeamID {pTeamId}", pTeamId);
+                _logger.LogError(ex, "Error in GetPTeamDetailsTab for PTeamID {pTeamId}", pTeamId);
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }
@@ -133,12 +137,12 @@ namespace SwimmingAcademy.Controllers
 
             try
             {
-                var actions = await _repo.SearchActionsAsync(request);
+                var actions = await _preTeamRepository.SearchActionsAsync(request);
                 return Ok(actions);
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in SearchActions");
+                _logger.LogError(ex, "Error in SearchActions");
                 return StatusCode(500, $"Internal server error: {ex.Message}");
             }
         }

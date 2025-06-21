@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using SwimmingAcademy.Data;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
+using SwimmingAcademy.Models;
 using System.Data;
 
 namespace SwimmingAcademy.Repositories
@@ -14,6 +15,32 @@ namespace SwimmingAcademy.Repositories
         public PreTeamRepository(SwimmingAcademyContext context)
         {
             _context = context;
+        }
+
+       
+
+        public async Task<long> CreateAsync(CreatePTeamRequest dto)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var preTeam = new Info
+                {
+                    // Map properties from dto
+                };
+                _context.Infos.Add(preTeam);
+                await _context.SaveChangesAsync();
+
+                // Optionally add log entry here
+
+                await transaction.CommitAsync();
+                return preTeam.PTeamID;
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<long> CreatePreTeamAsync(CreatePTeamRequest req)
@@ -277,5 +304,5 @@ namespace SwimmingAcademy.Repositories
 
             return result;
         }
-}
+    }
 }

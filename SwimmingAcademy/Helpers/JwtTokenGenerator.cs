@@ -1,4 +1,5 @@
 ﻿using Microsoft.IdentityModel.Tokens;
+using SwimmingAcademy.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -7,43 +8,41 @@ namespace SwimmingAcademy.Helpers
 {
     public class JwtTokenGenerator
     {
-        private readonly IConfiguration _configuration;
+        private readonly IConfiguration _config;
 
-        public JwtTokenGenerator(IConfiguration configuration)
+        public JwtTokenGenerator(IConfiguration config)
         {
-            _configuration = configuration;
+            _config = config;
         }
 
-        public string GenerateToken(int userId, string userType)
+        public string GenerateToken(user user)
         {
-            var jwtSettings = _configuration.GetSection("Jwt");
-            var keyString = jwtSettings["Key"];
-
-            if (string.IsNullOrEmpty(keyString))
+            var jwtKey = _config["Jwt:Key"];
+            if (string.IsNullOrEmpty(jwtKey))
             {
                 throw new InvalidOperationException("JWT Key is not configured.");
             }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(keyString));
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var claims = new[]
             {
-                    new Claim(ClaimTypes.NameIdentifier, userId.ToString()),
-                    new Claim(ClaimTypes.Role, userType),
-                    new Claim("UserId", userId.ToString())
-                };
-
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+            new Claim(JwtRegisteredClaimNames.Sub, user.UserId.ToString()),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            // Add more claims as needed
+        };
 
             var token = new JwtSecurityToken(
-                issuer: jwtSettings["Issuer"],
-                audience: jwtSettings["Audience"],
+                issuer: _config["Jwt:Issuer"],
+                audience: _config["Jwt:Audience"],
                 claims: claims,
-                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(jwtSettings["DurationInMinutes"])),
-                signingCredentials: credentials
+                expires: DateTime.UtcNow.AddMinutes(Convert.ToDouble(_config["Jwt:DurationInMinutes"])),
+                signingCredentials: creds
             );
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
     }
 }
+

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
 
@@ -9,20 +10,17 @@ namespace SwimmingAcademy.Controllers
     public class SchoolsController : ControllerBase
     {
         private readonly ISchoolRepository _repo;
-        // private readonly ILogger<SchoolsController> _logger;
+        private readonly ILogger<SchoolsController> _logger;
 
-        public SchoolsController(ISchoolRepository repo /*, ILogger<SchoolsController> logger*/)
+        public SchoolsController(ISchoolRepository repo, ILogger<SchoolsController> logger)
         {
             _repo = repo;
-            // _logger = logger;
+            _logger = logger;
         }
 
         [HttpPost("create")]
         public async Task<IActionResult> CreateSchool([FromBody] CreateSchoolRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var id = await _repo.CreateSchoolAsync(request);
@@ -30,17 +28,14 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in CreateSchool");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in CreateSchool");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
         [HttpPost("search")]
         public async Task<IActionResult> SearchSchools([FromBody] SchoolSearchRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             int filtersUsed = 0;
             if (request.SchoolID != null) filtersUsed++;
             if (!string.IsNullOrWhiteSpace(request.FullName)) filtersUsed++;
@@ -57,17 +52,14 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in SearchSchools");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in SearchSchools");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
         [HttpPut("update")]
         public async Task<IActionResult> UpdateSchool([FromBody] UpdateSchoolRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var updated = await _repo.UpdateSchoolAsync(request);
@@ -75,17 +67,14 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in UpdateSchool");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in UpdateSchool");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
         [HttpPost("end")]
         public async Task<IActionResult> EndSchool([FromBody] EndSchoolRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var result = await _repo.EndSchoolAsync(request);
@@ -93,8 +82,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in EndSchool");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in EndSchool");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -108,8 +97,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in GetSchoolDetailsTab");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in GetSchoolDetailsTab");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -123,17 +112,14 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in GetSchoolSwimmerDetails");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in GetSchoolSwimmerDetails");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
         [HttpPost("search-actions")]
         public async Task<IActionResult> SearchSchoolActions([FromBody] SchoolActionSearchRequest request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
                 var actions = await _repo.SearchSchoolActionsAsync(request);
@@ -141,8 +127,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in SearchSchoolActions");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in SearchSchoolActions");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
 
@@ -156,8 +142,8 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                // _logger.LogError(ex, "Error in GetPossibleSchool");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error in GetPossibleSchool");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
     }
