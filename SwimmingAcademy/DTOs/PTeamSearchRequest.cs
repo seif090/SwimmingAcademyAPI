@@ -5,19 +5,8 @@
     /// </summary>
     public class PTeamSearchRequest
     {
-        /// <summary>
-        /// The ID of the PreTeam to filter by.
-        /// </summary>
-        public long PTeamID { get; set; }
-
-        /// <summary>
-        /// The swimmer's full name to filter by.
-        /// </summary>
-        public string FullName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// The level to filter by.
-        /// </summary>
-        public short Level { get; set; }
+        public long? PTeamID { get; set; }
+        public string? FullName { get; set; }
+        public short? Level { get; set; }
     }
 }

@@ -31,29 +31,26 @@ namespace SwimmingAcademy.Repositories
 
                 command.Parameters.AddRange(new[]
                 {
-                    new SqlParameter("@UserID", req.UserID),
-                    new SqlParameter("@Site", req.Site),
-                    new SqlParameter("@FullName", req.FullName),
-                    new SqlParameter("@BirthDate", req.BirthDate),
-                    new SqlParameter("@Start_Level", req.StartLevel),
-                    new SqlParameter("@Gender", req.Gender),
-                    new SqlParameter("@club", req.Club),
-                    new SqlParameter("@primaryPhone", req.PrimaryPhone),
-                    new SqlParameter("@SecondaryPhone", (object?)req.SecondaryPhone ?? DBNull.Value),
-                    new SqlParameter("@PrimaryJop", req.PrimaryJob),
-                    new SqlParameter("@SecondaryJop", (object?)req.SecondaryJob ?? DBNull.Value),
-                    new SqlParameter("@Email", req.Email),
-                    new SqlParameter("@Adress", req.Address)
-                });
+            new SqlParameter("@UserID", req.UserID),
+            new SqlParameter("@Site", req.Site),
+            new SqlParameter("@FullName", req.FullName),
+            new SqlParameter("@BirthDate", req.BirthDate),
+            new SqlParameter("@Start_Level", req.StartLevel),
+            new SqlParameter("@Gender", req.Gender),
+            new SqlParameter("@club", req.Club),
+            new SqlParameter("@primaryPhone", req.PrimaryPhone),
+            new SqlParameter("@SecondaryPhone", (object?)req.SecondaryPhone ?? DBNull.Value),
+            new SqlParameter("@PrimaryJop", req.PrimaryJob),
+            new SqlParameter("@SecondaryJop", (object?)req.SecondaryJob ?? DBNull.Value),
+            new SqlParameter("@Email", req.Email),
+            new SqlParameter("@Adress", req.Address)
+        });
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
-                using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                    return reader.GetInt64(0);
-
-                return 0;
+                var result = await command.ExecuteScalarAsync();
+                return result is null ? 0 : Convert.ToInt64(result);
             }
             catch (Exception ex)
             {
@@ -102,7 +99,6 @@ namespace SwimmingAcademy.Repositories
                 throw new Exception("An error occurred while retrieving swimmer info.");
             }
         }
-
         public async Task<IEnumerable<SwimmerLogDto>> GetSwimmerLogsAsync(long swimmerID)
         {
             var logs = new List<SwimmerLogDto>();
@@ -139,7 +135,7 @@ namespace SwimmingAcademy.Repositories
             }
         }
 
-        public async Task<long> ChangeSwimmerSiteAsync(ChangeSwimmerSiteRequest req)
+        public async Task<long> ChangeSwimmerSiteAsync(ChangeSwimmerSiteRequest request)
         {
             try
             {
@@ -149,26 +145,20 @@ namespace SwimmingAcademy.Repositories
                 command.CommandText = "[Swimmers].[Change_Site]";
                 command.CommandType = CommandType.StoredProcedure;
 
-                command.Parameters.AddRange(new[]
-                {
-                    new SqlParameter("@swimmerID", req.SwimmerID),
-                    new SqlParameter("@userID", req.UserID),
-                    new SqlParameter("@Site", req.Site)
-                });
+                command.Parameters.Add(new SqlParameter("@swimmerID", request.SwimmerID));
+                command.Parameters.Add(new SqlParameter("@userID", request.UserID));
+                command.Parameters.Add(new SqlParameter("@Site", request.Site));
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
-                using var reader = await command.ExecuteReaderAsync();
-                if (await reader.ReadAsync())
-                    return reader.GetInt64(0);
-
-                return 0;
+                var result = await command.ExecuteScalarAsync();
+                return result is null ? 0 : Convert.ToInt64(result);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ChangeSwimmerSiteAsync");
-                throw new Exception("An error occurred while changing swimmer site.");
+                _logger.LogError(ex, "Error changing swimmer site for SwimmerID {SwimmerID}", request.SwimmerID);
+                throw new Exception("An error occurred while changing the swimmer's site.");
             }
         }
 
@@ -208,12 +198,12 @@ namespace SwimmingAcademy.Repositories
 
                 command.Parameters.AddRange(new[]
                 {
-                    new SqlParameter("@swimmerID", req.SwimmerID),
-                    new SqlParameter("@PTeamID", req.PTeamID),
-                    new SqlParameter("@DuarationsInMonths", req.DuarationsInMonths),
-                    new SqlParameter("@user", req.User),
-                    new SqlParameter("@site", req.Site)
-                });
+            new SqlParameter("@swimmerID", req.SwimmerID),
+            new SqlParameter("@PTeamID", req.PTeamID),
+            new SqlParameter("@DuarationsInMonths", req.DuarationsInMonths),
+            new SqlParameter("@user", req.User),
+            new SqlParameter("@site", req.Site)
+        });
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
@@ -249,12 +239,12 @@ namespace SwimmingAcademy.Repositories
 
                 command.Parameters.AddRange(new[]
                 {
-                    new SqlParameter("@swimmerID", req.SwimmerID),
-                    new SqlParameter("@SchoolID", req.SchoolID),
-                    new SqlParameter("@DuarationsInMonths", req.DuarationsInMonths),
-                    new SqlParameter("@user", req.User),
-                    new SqlParameter("@site", req.Site)
-                });
+            new SqlParameter("@swimmerID", req.SwimmerID),
+            new SqlParameter("@SchoolID", req.SchoolID),
+            new SqlParameter("@DuarationsInMonths", req.DuarationsInMonths),
+            new SqlParameter("@user", req.User),
+            new SqlParameter("@site", req.Site)
+        });
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
@@ -397,7 +387,7 @@ namespace SwimmingAcademy.Repositories
                             SecondDay = reader.IsDBNull(2) ? "" : reader.GetString(2),
                             ThirdDay = reader.IsDBNull(3) ? "" : reader.GetString(3),
                             StartTime = reader.IsDBNull(4) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(4)?.ToString() ?? ""),
-                            EndTime = reader.IsDBNull(5) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(5).ToString() ?? ""),
+                            EndTime = reader.IsDBNull(5) ? TimeSpan.Zero : TimeSpan.Parse(reader.GetValue(5)?.ToString() ?? ""),
                             SwimmerLevel = reader.IsDBNull(6) ? "" : reader.GetString(6),
                             Attendence = reader.IsDBNull(7) ? "" : reader.GetString(7),
                             LastStar = reader.IsDBNull(8) ? "" : reader.GetString(8)

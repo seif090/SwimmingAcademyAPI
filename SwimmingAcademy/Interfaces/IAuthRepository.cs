@@ -1,10 +1,10 @@
-﻿using SwimmingAcademy.DTOs;
+﻿using System.Threading.Tasks;
+using SwimmingAcademy.DTOs;
 
 namespace SwimmingAcademy.Interfaces
 {
     public interface IAuthRepository
     {
-        Task<LoginResultDTO> LoginAsync(int userId, string password);
-
+        Task<UserLoginResponseDto> UserLogInAsync(UserLoginRequestDto request);
     }
 }

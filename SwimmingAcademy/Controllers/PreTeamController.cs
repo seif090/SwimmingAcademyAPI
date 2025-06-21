@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
+using System.Threading.Tasks;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -9,126 +10,32 @@ namespace SwimmingAcademy.Controllers
     [Route("api/[controller]")]
     public class PreTeamController : ControllerBase
     {
-        private readonly IPreTeamRepository _preTeamRepository;
+        private readonly IPreTeamRepository _repo;
         private readonly ILogger<PreTeamController> _logger;
 
-        public PreTeamController(IPreTeamRepository preTeamRepository, ILogger<PreTeamController> logger)
+        public PreTeamController(IPreTeamRepository repo, ILogger<PreTeamController> logger)
         {
-            _preTeamRepository = preTeamRepository;
+            _repo = repo;
             _logger = logger;
         }
 
-        
-       
-
-        [HttpPost("create")]
-        public async Task<ActionResult<long>> Create([FromBody] CreatePTeamRequest dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var id = await _preTeamRepository.CreatePreTeamAsync(dto);
-                return Ok(id);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error creating preteam");
-                return StatusCode(500, "An error occurred while creating the preteam.");
-            }
-        }
-
-        [HttpPost("search")]
-        public async Task<IActionResult> SearchPTeam([FromBody] PTeamSearchRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var filtersUsed = new object?[] { request.PTeamID, request.FullName, request.Level }
-                .Count(x => x != null);
-
-            if (filtersUsed != 1)
-                return BadRequest("Please provide exactly one filter: PTeamID, FullName, or Level.");
-
-            try
-            {
-                var result = await _preTeamRepository.SearchPTeamAsync(request);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in SearchPTeam");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpGet("swimmer/{swimmerId}/details")]
-        public async Task<IActionResult> GetSwimmerPTeamDetails(long swimmerId)
-        {
-            try
-            {
-                var result = await _preTeamRepository.GetSwimmerPTeamDetailsAsync(swimmerId);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetSwimmerPTeamDetails for swimmerId {swimmerId}", swimmerId);
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
-        [HttpPut("update")]
-        public async Task<IActionResult> UpdatePTeam([FromBody] UpdatePTeamRequest request)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            try
-            {
-                var updated = await _preTeamRepository.UpdatePTeamAsync(request);
-                return updated ? Ok("PreTeam updated successfully.") : BadRequest("Update failed.");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in UpdatePTeam");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
         [HttpPost("end")]
-        public async Task<IActionResult> EndPTeam([FromBody] EndPTeamRequest request)
+        public async Task<IActionResult> EndPreTeam([FromBody] EndPreTeamRequest request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var result = await _preTeamRepository.EndPTeamAsync(request);
+                var result = await _repo.EndPTeamAsync(request);
                 return result ? Ok("PreTeam ended successfully.") : BadRequest("Failed to end PreTeam.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in EndPTeam");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error ending PreTeam");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
-
-        [HttpGet("{pTeamId}/tab-details")]
-        public async Task<IActionResult> GetPTeamDetailsTab(long pTeamId)
-        {
-            try
-            {
-                var result = await _preTeamRepository.GetPTeamDetailsTabAsync(pTeamId);
-                return result == null ? NotFound("Details not found.") : Ok(result);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error in GetPTeamDetailsTab for PTeamID {pTeamId}", pTeamId);
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
-        }
-
         [HttpPost("search-actions")]
         public async Task<IActionResult> SearchActions([FromBody] PreTeamActionSearchRequest request)
         {
@@ -137,13 +44,75 @@ namespace SwimmingAcademy.Controllers
 
             try
             {
-                var actions = await _preTeamRepository.SearchActionsAsync(request);
+                var actions = await _repo.SearchActionsAsync(request);
                 return Ok(actions);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in SearchActions");
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                _logger.LogError(ex, "Error searching PreTeam actions");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
+        }
+        [HttpPost("search")]
+        public async Task<IActionResult> SearchPTeam([FromBody] PTeamSearchRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _repo.SearchPTeamAsync(request);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching PreTeam");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
+        }
+        [HttpGet("{pTeamId}/swimmers")]
+        public async Task<IActionResult> GetSwimmerPTeamDetails(long pTeamId)
+        {
+            try
+            {
+                var result = await _repo.GetSwimmerPTeamDetailsAsync(pTeamId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching swimmer PreTeam details");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
+        }
+        [HttpPut("update")]
+        public async Task<IActionResult> UpdatePTeam([FromBody] UpdatePTeamRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            try
+            {
+                var result = await _repo.UpdatePTeamAsync(request);
+                return result ? Ok("PreTeam updated successfully.") : BadRequest("Failed to update PreTeam.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating PreTeam");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
+            }
+        }
+        [HttpGet("{pTeamId}/details-tab")]
+        public async Task<IActionResult> GetPTeamDetailsTab(long pTeamId)
+        {
+            try
+            {
+                var result = await _repo.GetPTeamDetailsTabAsync(pTeamId);
+                return result is null ? NotFound() : Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching PTeam details tab");
+                return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
     }

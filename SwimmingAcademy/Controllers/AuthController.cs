@@ -20,35 +20,24 @@ namespace SwimmingAcademy.Controllers
         }
 
         [HttpPost("login")]
-        public async Task<ActionResult<LoginResultDTO>> Login([FromBody] LoginRequest request)
+        public async Task<IActionResult> UserLogIn([FromBody] UserLoginRequestDto request)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
             {
-                var result = await _repo.LoginAsync(request.UserId, request.Password!);
-
-                if (result == null)
-                    return Unauthorized("Invalid credentials.");
-
+                var result = await _repo.UserLogInAsync(request);
                 return Ok(result);
-
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error during login for user {UserId}", request.UserId);
-                // Generic error for production
+                _logger.LogError(ex, "UserLogIn failed");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }
     }
 
-    public class LoginRequest
-    {
-        public int UserId { get; set; }
-        [Required]
-        public string? Password { get; set; }
-    }
+    
 }
 

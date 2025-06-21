@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
+using SwimmingAcademy.Repositories;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -21,6 +22,9 @@ namespace SwimmingAcademy.Controllers
         [HttpPost("add")]
         public async Task<IActionResult> AddSwimmer([FromBody] AddSwimmerRequestDTO request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
                 var swimmerId = await _repo.AddSwimmerAsync(request);
@@ -30,7 +34,7 @@ namespace SwimmingAcademy.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "AddSwimmer failed");
+                _logger.LogError(ex, "Error adding swimmer");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }

@@ -30,9 +30,9 @@ namespace SwimmingAcademy.Repositories
                 command.Parameters.AddRange(new[]
                 {
                     new SqlParameter("@SchoolLevel", req.SchoolLevel),
-                    new SqlParameter("@CoachID", req.CoachID),
-                    new SqlParameter("@FirstDay", req.FirstDay),
-                    new SqlParameter("@SecondDay", req.SecondDay),
+                    new SqlParameter("@coachID", req.CoachID),
+                    new SqlParameter("@FirstDay", req.FirstDay ?? (object)DBNull.Value),
+                    new SqlParameter("@SecondDay", req.SecondDay ?? (object)DBNull.Value),
                     new SqlParameter("@StartTime", req.StartTime),
                     new SqlParameter("@EndTime", req.EndTime),
                     new SqlParameter("@Type", req.Type),
@@ -53,6 +53,10 @@ namespace SwimmingAcademy.Repositories
             }
         }
 
+
+
+
+
         public async Task<bool> UpdateSchoolAsync(UpdateSchoolRequest req)
         {
             try
@@ -63,16 +67,16 @@ namespace SwimmingAcademy.Repositories
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddRange(new[]
                 {
-                    new SqlParameter("@schoolID", req.SchoolID),
-                    new SqlParameter("@coachID", req.CoachID),
-                    new SqlParameter("@FirstDay", req.FirstDay),
-                    new SqlParameter("@SecondDay", req.SecondDay),
-                    new SqlParameter("@StartTime", req.StartTime),
-                    new SqlParameter("@EndTime", req.EndTime),
-                    new SqlParameter("@Type", req.Type),
-                    new SqlParameter("@site", req.Site),
-                    new SqlParameter("@user", req.User)
-                });
+            new SqlParameter("@schoolID", req.SchoolID),
+            new SqlParameter("@coachID", req.CoachID),
+            new SqlParameter("@FirstDay", req.FirstDay ?? (object)DBNull.Value),
+            new SqlParameter("@SecondDay", req.SecondDay ?? (object)DBNull.Value),
+            new SqlParameter("@StartTime", req.StartTime),
+            new SqlParameter("@EndTime", req.EndTime),
+            new SqlParameter("@Type", req.Type),
+            new SqlParameter("@site", req.Site),
+            new SqlParameter("@user", req.User)
+        });
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
@@ -82,7 +86,7 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in UpdateSchoolAsync");
+                _logger.LogError(ex, "Error in UpdateSchoolAsync for SchoolID {SchoolID}", req.SchoolID);
                 throw new Exception("An error occurred while updating the school.");
             }
         }
@@ -97,10 +101,10 @@ namespace SwimmingAcademy.Repositories
                 command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddRange(new[]
                 {
-                    new SqlParameter("@schoolID", req.SchoolID),
-                    new SqlParameter("@userID", req.UserID),
-                    new SqlParameter("@site", req.Site)
-                });
+            new SqlParameter("@schoolID", req.SchoolID),
+            new SqlParameter("@userID", req.UserID),
+            new SqlParameter("@site", req.Site)
+        });
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
@@ -110,7 +114,7 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in EndSchoolAsync");
+                _logger.LogError(ex, "Error in EndSchoolAsync for SchoolID {SchoolID}", req.SchoolID);
                 throw new Exception("An error occurred while ending the school.");
             }
         }
@@ -124,6 +128,7 @@ namespace SwimmingAcademy.Repositories
                 using var command = conn.CreateCommand();
                 command.CommandText = "[Schools].[ShowSchool]";
                 command.CommandType = CommandType.StoredProcedure;
+
                 command.Parameters.Add(new SqlParameter("@SchoolID", (object?)req.SchoolID ?? DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@FullName", (object?)req.FullName ?? DBNull.Value));
                 command.Parameters.Add(new SqlParameter("@level", (object?)req.Level ?? DBNull.Value));
@@ -153,7 +158,6 @@ namespace SwimmingAcademy.Repositories
                 throw new Exception("An error occurred while searching for schools.");
             }
         }
-
         public async Task<SchoolDetailsTabDto?> GetSchoolDetailsTabAsync(long schoolID)
         {
             try
@@ -186,7 +190,7 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetSchoolDetailsTabAsync");
+                _logger.LogError(ex, "Error in GetSchoolDetailsTabAsync for SchoolID {SchoolID}", schoolID);
                 throw new Exception("An error occurred while retrieving school details.");
             }
         }
@@ -219,11 +223,10 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in GetSchoolSwimmerDetailsAsync");
+                _logger.LogError(ex, "Error in GetSchoolSwimmerDetailsAsync for SchoolID {SchoolID}", schoolID);
                 throw new Exception("An error occurred while retrieving school swimmer details.");
             }
         }
-
         public async Task<IEnumerable<ActionNameDto>> SearchSchoolActionsAsync(SchoolActionSearchRequest req)
         {
             var result = new List<ActionNameDto>();
@@ -252,7 +255,7 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in SearchSchoolActionsAsync");
+                _logger.LogError(ex, "Error in SearchSchoolActionsAsync for UserID {UserID}, SchoolID {SchoolID}, UserSite {UserSite}", req.UserID, req.SchoolID, req.UserSite);
                 throw new Exception("An error occurred while searching for school actions.");
             }
         }

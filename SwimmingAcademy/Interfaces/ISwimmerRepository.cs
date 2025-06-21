@@ -3,7 +3,7 @@ namespace SwimmingAcademy.Interfaces
 {
     public interface ISwimmerRepository
     {
-        Task<long> AddSwimmerAsync(AddSwimmerRequestDTO request);
+        Task<long> AddSwimmerAsync(AddSwimmerRequestDTO req);
         Task<SwimmerInfoTabDto?> GetSwimmerInfoTabAsync(long swimmerID);
         Task<IEnumerable<SwimmerLogDto>> GetSwimmerLogsAsync(long swimmerID);
         Task<long> ChangeSwimmerSiteAsync(ChangeSwimmerSiteRequest request);

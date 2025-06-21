@@ -5,9 +5,7 @@
     /// </summary>
     public class FreeCoachDto
     {
-        /// <summary>
-        /// The full name of the free coach.
-        /// </summary>
-        public string? Name { get; set; }
+        public string Name { get; set; } = string.Empty;
+
     }
 }

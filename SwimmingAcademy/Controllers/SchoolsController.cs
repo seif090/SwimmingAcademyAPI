@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
+using SwimmingAcademy.Repositories;
 
 namespace SwimmingAcademy.Controllers
 {
@@ -21,14 +22,19 @@ namespace SwimmingAcademy.Controllers
         [HttpPost("create")]
         public async Task<IActionResult> CreateSchool([FromBody] CreateSchoolRequest request)
         {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
             try
             {
-                var id = await _repo.CreateSchoolAsync(request);
-                return Ok(new { SchoolID = id });
+                var schoolId = await _repo.CreateSchoolAsync(request);
+                return schoolId > 0
+                    ? Ok(new { SchoolID = schoolId })
+                    : BadRequest("Failed to create school.");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in CreateSchool");
+                _logger.LogError(ex, "Error creating school");
                 return StatusCode(500, "An unexpected error occurred. Please try again later.");
             }
         }

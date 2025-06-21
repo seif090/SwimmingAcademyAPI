@@ -4,7 +4,7 @@ namespace SwimmingAcademy.Interfaces
 {
     public interface ISchoolRepository
     {
-        Task<long> CreateSchoolAsync(CreateSchoolRequest request);
+        Task<long> CreateSchoolAsync(CreateSchoolRequest req);
         Task<IEnumerable<SchoolSearchResultDto>> SearchSchoolsAsync(SchoolSearchRequest request);
         Task<bool> UpdateSchoolAsync(UpdateSchoolRequest request);
         Task<bool> EndSchoolAsync(EndSchoolRequest request);

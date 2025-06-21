@@ -1,90 +1,87 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using SwimmingAcademy.Data;
 using SwimmingAcademy.DTOs;
 using SwimmingAcademy.Interfaces;
-using SwimmingAcademy.Models;
 using System.Data;
+using System.Threading.Tasks;
 
 namespace SwimmingAcademy.Repositories
 {
     public class PreTeamRepository : IPreTeamRepository
     {
         private readonly SwimmingAcademyContext _context;
+        private readonly ILogger<PreTeamRepository> _logger;
 
-        public PreTeamRepository(SwimmingAcademyContext context)
+        public PreTeamRepository(SwimmingAcademyContext context, ILogger<PreTeamRepository> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-       
-
-        public async Task<long> CreateAsync(CreatePTeamRequest dto)
-        {
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var preTeam = new Info
-                {
-                    // Map properties from dto
-                };
-                _context.Infos.Add(preTeam);
-                await _context.SaveChangesAsync();
-
-                // Optionally add log entry here
-
-                await transaction.CommitAsync();
-                return preTeam.PTeamID;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                throw;
-            }
-        }
-
-        public async Task<long> CreatePreTeamAsync(CreatePTeamRequest req)
+        public async Task<bool> EndPreTeamAsync(EndPreTeamRequest request)
         {
             try
             {
                 using var conn = _context.Database.GetDbConnection();
                 using var command = conn.CreateCommand();
-
-                command.CommandText = "[PreTeam].[Create_PTeam]";
+                command.CommandText = "[PreTeam].[EndPreTeam]";
                 command.CommandType = CommandType.StoredProcedure;
 
-                
-                command.Parameters.AddRange(new[]
-                {
-                    new SqlParameter("@PTeamLevel", req.PreTeamLevel == default(short) ? (object)DBNull.Value : req.PreTeamLevel),
-                    new SqlParameter("@CoachID", req.CoachID),
-                    new SqlParameter("@FirstDay", req.FirstDay ?? (object)DBNull.Value),
-                    new SqlParameter("@SecondDay", req.SecondDay ?? (object)DBNull.Value),
-                    new SqlParameter("@ThirdDay", req.ThirdDay ?? (object)DBNull.Value),
-                    new SqlParameter("@site", req.Site == default(short) ? (object)DBNull.Value : req.Site),
-                    new SqlParameter("@user", req.User == default(int) ? (object)DBNull.Value : req.User),
-                    new SqlParameter("@startTime", req.StartTime),
-                    new SqlParameter("@EndTime", req.EndTime)
-                });
-                   
+                command.Parameters.Add(new SqlParameter("@PteamID", request.PteamID));
+                command.Parameters.Add(new SqlParameter("@userID", request.UserID));
+                command.Parameters.Add(new SqlParameter("@site", request.Site));
+
+                if (conn.State != ConnectionState.Open)
+                    await conn.OpenAsync();
+
+                await command.ExecuteNonQueryAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error ending PreTeam for PteamID {PteamID}", request.PteamID);
+                throw new Exception("An error occurred while ending the PreTeam.");
+            }
+        }
+        public async Task<IEnumerable<ActionNameDto>> SearchActionsAsync(PreTeamActionSearchRequest request)
+        {
+            var actions = new List<ActionNameDto>();
+            try
+            {
+                using var conn = _context.Database.GetDbConnection();
+                using var command = conn.CreateCommand();
+
+                command.CommandText = "[PreTeam].[SerachActions]";
+                command.CommandType = CommandType.StoredProcedure;
+
+                command.Parameters.Add(new SqlParameter("@UserID", request.UserID));
+                command.Parameters.Add(new SqlParameter("@PTeamID", request.PTeamID));
+                command.Parameters.Add(new SqlParameter("@userSite", request.UserSite));
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
                 using var reader = await command.ExecuteReaderAsync();
-                return await reader.ReadAsync() ? reader.GetInt64(0) : 0;
+                while (await reader.ReadAsync())
+                {
+                    actions.Add(new ActionNameDto
+                    {
+                        ActionName = reader.IsDBNull(0) ? "" : reader.GetString(0)
+                    });
+                }
+                return actions;
             }
             catch (Exception ex)
             {
-                // log error or rethrow
-                throw new Exception("Error while creating pre-team.", ex);
+                _logger.LogError(ex, "Error searching PreTeam actions for UserID {UserID}, PTeamID {PTeamID}, UserSite {UserSite}", request.UserID, request.PTeamID, request.UserSite);
+                throw new Exception("An error occurred while searching PreTeam actions.");
             }
         }
-
         public async Task<IEnumerable<PTeamSearchResultDto>> SearchPTeamAsync(PTeamSearchRequest request)
         {
             var result = new List<PTeamSearchResultDto>();
-
             try
             {
                 using var conn = _context.Database.GetDbConnection();
@@ -112,19 +109,17 @@ namespace SwimmingAcademy.Repositories
                         FromTo = reader.IsDBNull(4) ? "" : reader.GetString(4)
                     });
                 }
+                return result;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error while searching pre-teams.", ex);
+                _logger.LogError(ex, "Error searching PreTeam with request {@Request}", request);
+                throw new Exception("An error occurred while searching PreTeam.");
             }
-
-            return result;
         }
-
         public async Task<IEnumerable<SwimmerPTeamDetailsDto>> GetSwimmerPTeamDetailsAsync(long pTeamId)
         {
             var result = new List<SwimmerPTeamDetailsDto>();
-
             try
             {
                 using var conn = _context.Database.GetDbConnection();
@@ -148,16 +143,15 @@ namespace SwimmingAcademy.Repositories
                         LastStar = reader.IsDBNull(3) ? "" : reader.GetString(3)
                     });
                 }
+                return result;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error fetching swimmer pre-team details.", ex);
+                _logger.LogError(ex, "Error fetching swimmer PreTeam details for PTeamID {PTeamID}", pTeamId);
+                throw new Exception("An error occurred while fetching swimmer PreTeam details.");
             }
-
-            return result;
         }
-
-        public async Task<bool> UpdatePTeamAsync(UpdatePTeamRequest req)
+        public async Task<bool> UpdatePTeamAsync(UpdatePTeamRequest request)
         {
             try
             {
@@ -167,18 +161,15 @@ namespace SwimmingAcademy.Repositories
                 command.CommandText = "[PreTeam].[Updated]";
                 command.CommandType = CommandType.StoredProcedure;
 
-                command.Parameters.AddRange(new[]
-                {
-                    new SqlParameter("@PTeamID", req.PTeamID),
-                    new SqlParameter("@coachID", req.CoachID),
-                    new SqlParameter("@FirstDay", req.FirstDay),
-                    new SqlParameter("@SecondDay", req.SecondDay),
-                    new SqlParameter("@ThirdDay", req.ThirdDay),
-                    new SqlParameter("@StartTime", req.StartTime),
-                    new SqlParameter("@EndTime", req.EndTime),
-                    new SqlParameter("@site", req.Site == default(short) ?(object) DBNull.Value : req.Site),
-                    new SqlParameter("@user", req.User == default(short) ?(object) DBNull.Value : req.User)
-                });
+                command.Parameters.Add(new SqlParameter("@PTeamID", request.PTeamID));
+                command.Parameters.Add(new SqlParameter("@coachID", request.CoachID));
+                command.Parameters.Add(new SqlParameter("@FirstDay", request.FirstDay));
+                command.Parameters.Add(new SqlParameter("@SecondDay", request.SecondDay));
+                command.Parameters.Add(new SqlParameter("@ThirdDay", request.ThirdDay));
+                command.Parameters.Add(new SqlParameter("@StartTime", request.StartTime));
+                command.Parameters.Add(new SqlParameter("@EndTime", request.EndTime));
+                command.Parameters.Add(new SqlParameter("@site", request.Site));
+                command.Parameters.Add(new SqlParameter("@user", request.User));
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
@@ -188,39 +179,42 @@ namespace SwimmingAcademy.Repositories
             }
             catch (Exception ex)
             {
-                throw new Exception("Error updating pre-team.", ex);
+                _logger.LogError(ex, "Error updating PreTeam with ID {PTeamID}", request.PTeamID);
+                throw new Exception("An error occurred while updating the PreTeam.");
             }
         }
-
-        public async Task<bool> EndPTeamAsync(EndPTeamRequest req)
+        public async Task<long> CreatePreTeamAsync(CreatePTeamRequest request)
         {
             try
             {
                 using var conn = _context.Database.GetDbConnection();
                 using var command = conn.CreateCommand();
 
-                command.CommandText = "[PreTeam].[EndPreTeam]";
+                command.CommandText = "[PreTeam].[Create_PTeam]";
                 command.CommandType = CommandType.StoredProcedure;
 
-                command.Parameters.AddRange(new[]
-                {
-                    new SqlParameter("@PteamID", req.PTeamID),
-                    new SqlParameter("@userID", req.UserID),
-                    new SqlParameter("@site", req.Site == default(short) ? (object)DBNull.Value : req.Site)
-                });
+                command.Parameters.Add(new SqlParameter("@PTeamLevel", request.PreTeamLevel));
+                command.Parameters.Add(new SqlParameter("@CoachID", request.CoachID));
+                command.Parameters.Add(new SqlParameter("@FirstDay", request.FirstDay ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@SecondDay", request.SecondDay ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@ThirdDay", request.ThirdDay ?? (object)DBNull.Value));
+                command.Parameters.Add(new SqlParameter("@site", request.Site));
+                command.Parameters.Add(new SqlParameter("@user", request.User));
+                command.Parameters.Add(new SqlParameter("@startTime", request.StartTime));
+                command.Parameters.Add(new SqlParameter("@EndTime", request.EndTime));
 
                 if (conn.State != ConnectionState.Open)
                     await conn.OpenAsync();
 
-                await command.ExecuteNonQueryAsync();
-                return true;
+                var result = await command.ExecuteScalarAsync();
+                return result is null ? 0 : Convert.ToInt64(result);
             }
             catch (Exception ex)
             {
-                throw new Exception("Error ending pre-team.", ex);
+                _logger.LogError(ex, "Error creating PreTeam");
+                throw new Exception("An error occurred while creating the PreTeam.");
             }
         }
-
         public async Task<PTeamDetailsTabDto?> GetPTeamDetailsTabAsync(long pTeamId)
         {
             try
@@ -244,65 +238,18 @@ namespace SwimmingAcademy.Repositories
                         FirstDay = reader.IsDBNull(1) ? "" : reader.GetString(1),
                         SecondDay = reader.IsDBNull(2) ? "" : reader.GetString(2),
                         ThirdDay = reader.IsDBNull(3) ? "" : reader.GetString(3),
-
-                        StartTime = reader.IsDBNull(4)
-                            ? ""
-                            : TimeSpan.TryParse(reader.GetValue(4)?.ToString(), out var start)
-                                ? start.ToString(@"hh\:mm")
-                                : "",
-
-                        EndTime = reader.IsDBNull(5)
-                            ? ""
-                            : TimeSpan.TryParse(reader.GetValue(5)?.ToString(), out var end)
-                                ? end.ToString(@"hh\:mm")
-                                : "",
-
+                        StartTime = reader.IsDBNull(4) ? "" : reader.GetValue(4)?.ToString() ?? "",
+                        EndTime = reader.IsDBNull(5) ? "" : reader.GetValue(5)?.ToString() ?? "",
                         IsEnded = !reader.IsDBNull(6) && reader.GetBoolean(6)
                     };
                 }
-
                 return null;
             }
             catch (Exception ex)
             {
-                throw new Exception("Error getting pre-team tab details.", ex);
+                _logger.LogError(ex, "Error fetching PTeam details tab for PTeamID {PTeamID}", pTeamId);
+                throw new Exception("An error occurred while fetching PTeam details tab.");
             }
-        }
-
-        public async Task<IEnumerable<ActionNameDto>> SearchActionsAsync(PreTeamActionSearchRequest req)
-        {
-            var result = new List<ActionNameDto>();
-
-            try
-            {
-                using var conn = _context.Database.GetDbConnection();
-                using var command = conn.CreateCommand();
-
-                command.CommandText = "[PreTeam].[SerachActions]";
-                command.CommandType = CommandType.StoredProcedure;
-
-                command.Parameters.Add(new SqlParameter("@UserID", req.UserID));
-                command.Parameters.Add(new SqlParameter("@PTeamID", req.PTeamID));
-                command.Parameters.Add(new SqlParameter("@userSite", req.UserSite == default(short) ? (object)DBNull.Value : req.UserSite));
-
-                if (conn.State != ConnectionState.Open)
-                    await conn.OpenAsync();
-
-                using var reader = await command.ExecuteReaderAsync();
-                while (await reader.ReadAsync())
-                {
-                    result.Add(new ActionNameDto
-                    {
-                        ActionName = reader.IsDBNull(0) ? "" : reader.GetString(0)
-                    });
-                }
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("Error searching pre-team actions.", ex);
-            }
-
-            return result;
         }
     }
 }
