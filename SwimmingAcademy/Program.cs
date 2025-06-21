@@ -57,6 +57,7 @@ builder.Services.AddScoped<ISwimmerRepository, SwimmerRepository>();
 builder.Services.AddScoped<ISchoolRepository, SchoolRepository>();
 builder.Services.AddScoped<IPreTeamRepository, PreTeamRepository>();
 builder.Services.AddScoped<ICoachRepository, CoachRepository>();
+builder.Services.AddScoped<ILogger, Logger<Program>>();
 
 // AutoMapper
 
