@@ -20,7 +20,7 @@ namespace SwimmingAcademy.Repositories
             _logger = logger;
         }
 
-        public async Task<bool> EndPreTeamAsync(EndPreTeamRequest request)
+        public async Task<bool> EndPTeamAsync(EndPreTeamRequest request)
         {
             try
             {
