@@ -33,6 +33,7 @@ namespace SwimmingAcademy.Controllers
                     return Unauthorized("Invalid credentials.");
 
                 return Ok(result);
+
             }
             catch (Exception ex)
             {

@@ -24,24 +24,27 @@ namespace SwimmingAcademy.Repositories
             _passwordHasher = passwordHasher;
         }
 
-        public async Task<LoginResultDTO> LoginAsync(int userId, string password)
+        public async Task<LoginResultDTO?> LoginAsync(int userId, string password)
         {
             var user = await _context.users.FirstOrDefaultAsync(u => u.UserId == userId);
             if (user == null)
-                throw new InvalidOperationException("User not found");
+                return null;
 
             var verificationResult = _passwordHasher.VerifyHashedPassword(user, user.Password, password);
             if (verificationResult != Microsoft.AspNetCore.Identity.PasswordVerificationResult.Success)
-                throw new UnauthorizedAccessException("Invalid password");
+                return null;
 
             var token = _jwtTokenGenerator.GenerateToken(user);
+
+            var sites = new List<string> { user.Site.ToString() };
 
             return new LoginResultDTO
             {
                 Message = "Login successful",
-                // Add other properties as needed
-                // e.g., Token = token
+                Sites = sites,
+                Modules = user.Modules
             };
         }
+
     }
 }
